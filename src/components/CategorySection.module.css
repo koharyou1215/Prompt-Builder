@@ -1,0 +1,87 @@
+/**
+ * CategorySection Styles
+ * iOS-inspired category section for iPhone 15 Pro Max
+ */
+
+.section {
+  margin: 16px 12px;
+  background: #F2F2F7; /* iOS system background */
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8E8E93; /* iOS label secondary */
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0; /* Gap is handled by margin in chips */
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  margin: 4px;
+  background: transparent;
+  color: #007AFF; /* iOS system blue */
+  border-radius: 16px;
+  border: 1.5px dashed #007AFF;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.addButton:hover {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.addButton:active {
+  transform: scale(0.95);
+  background: rgba(0, 122, 255, 0.2);
+}
+
+.addIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.addText {
+  font-size: 14px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .section {
+    background: #1C1C1E; /* iOS dark mode background */
+  }
+
+  .title {
+    color: #98989D; /* iOS dark mode label secondary */
+  }
+
+  .addButton {
+    color: #0A84FF; /* iOS dark mode blue */
+    border-color: #0A84FF;
+  }
+
+  .addButton:hover {
+    background: rgba(10, 132, 255, 0.1);
+  }
+
+  .addButton:active {
+    background: rgba(10, 132, 255, 0.2);
+  }
+}

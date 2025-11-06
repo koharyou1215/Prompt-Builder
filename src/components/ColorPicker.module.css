@@ -1,0 +1,130 @@
+/**
+ * ColorPicker Styles
+ * iOS-inspired color picker design for iPhone 15 Pro Max
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Preset Color Palette */
+.presetPalette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.colorButton {
+  width: 44px;
+  height: 44px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  /* iOS shadow */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.colorButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.colorButton:active {
+  transform: scale(0.95);
+}
+
+.colorButton.selected {
+  border-color: #000;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Custom Color Section */
+.customColorSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.customLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.customColorInput {
+  width: 50px;
+  height: 44px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+
+  /* Remove default browser styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.customColorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.customColorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+.customColorInput::-moz-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+.customColorInput:hover {
+  border-color: #3b82f6;
+}
+
+.colorValue {
+  font-family: monospace;
+  font-size: 13px;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .customColorSection {
+    border-top-color: #374151;
+  }
+
+  .customLabel {
+    color: #d1d5db;
+  }
+
+  .customColorInput {
+    border-color: #4b5563;
+  }
+
+  .colorValue {
+    color: #9ca3af;
+  }
+}

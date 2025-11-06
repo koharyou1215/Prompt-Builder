@@ -1,0 +1,142 @@
+/**
+ * MainPanel Component Styles
+ * CSS Modules for main editing panel layout
+ */
+
+/* Main panel container */
+.mainPanel {
+  padding: var(--spacing-sm);
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Editor section */
+.editorSection {
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Editor section with top margin (translation area) */
+.editorSectionWithMargin {
+  margin-top: var(--spacing-md);
+}
+
+/* Editor section title */
+.editorSection h3 {
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Translation header */
+.translationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Manual translate button */
+.manualTranslateBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background-color: var(--color-success);
+  color: #ffffff;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.manualTranslateBtn:hover:not(:disabled) {
+  background-color: #0e9670;
+}
+
+.manualTranslateBtn:disabled {
+  background-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* Prompt textarea */
+.promptTextarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.promptTextarea:focus {
+  outline: 2px solid var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Error message */
+.errorMessage {
+  margin-top: var(--spacing-sm);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}
+
+/* Keyword section */
+.keywordSection {
+  margin-top: var(--spacing-xl);
+}
+
+/* Keyword section with larger top margin */
+.keywordSectionWithMargin {
+  margin-top: calc(var(--spacing-xl) + var(--spacing-sm));
+}
+
+/* Keyword section title */
+.keywordSection h3 {
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Keyword category */
+.keywordCategory {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Keyword category title */
+.keywordCategory h4 {
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+/* Keyword buttons container */
+.keywordButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+/* Keyword button */
+.keywordButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-primary);
+  background-color: #f0f8ff;
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.keywordButton:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.keywordButton:active {
+  transform: scale(0.98);
+}

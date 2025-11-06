@@ -1,0 +1,245 @@
+/**
+ * CategoryColorSettings Styles
+ * iOS-inspired accordion design for iPhone 15 Pro Max
+ */
+
+.container {
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.resetAllButton {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* Touch target */
+  min-height: 36px;
+}
+
+.resetAllButton:hover {
+  background: #fee2e2;
+}
+
+.resetAllButton:active {
+  transform: scale(0.95);
+}
+
+.description {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.loading {
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Category List */
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.categoryItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.categoryItem:hover {
+  background: #f5f5f5;
+}
+
+/* Category Header */
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.categoryToggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+
+  /* Touch target */
+  min-height: 44px;
+}
+
+.categoryToggle:active {
+  transform: scale(0.98);
+}
+
+.colorPreview {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.categoryName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.customBadge {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #dbeafe;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.toggleIcon {
+  font-size: 12px;
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+}
+
+.resetButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* Touch target */
+  min-height: 36px;
+}
+
+.resetButton:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.resetButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.resetButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Color Picker Container */
+.colorPickerContainer {
+  padding: 12px 16px 16px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .title {
+    color: #f9fafb;
+  }
+
+  .resetAllButton {
+    color: #f87171;
+    background: #7f1d1d;
+    border-color: #991b1b;
+  }
+
+  .resetAllButton:hover {
+    background: #991b1b;
+  }
+
+  .description {
+    color: #d1d5db;
+  }
+
+  .loading {
+    color: #d1d5db;
+  }
+
+  .categoryItem {
+    border-color: #374151;
+    background: #111827;
+  }
+
+  .categoryItem:hover {
+    background: #1f2937;
+  }
+
+  .categoryName {
+    color: #f9fafb;
+  }
+
+  .customBadge {
+    color: #60a5fa;
+    background: #1e3a8a;
+  }
+
+  .toggleIcon {
+    color: #9ca3af;
+  }
+
+  .resetButton {
+    color: #d1d5db;
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .resetButton:hover:not(:disabled) {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+
+  .colorPickerContainer {
+    border-top-color: #374151;
+    background: #111827;
+  }
+}

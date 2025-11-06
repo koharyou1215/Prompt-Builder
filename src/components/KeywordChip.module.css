@@ -1,0 +1,83 @@
+/**
+ * KeywordChip Styles
+ * iOS-inspired chip design for iPhone 15 Pro Max
+ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  margin: 4px;
+  background: #007AFF; /* iOS system blue */
+  color: white;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+
+  /* Touch target (min 44x44pt) */
+  min-height: 32px;
+
+  /* Smooth animation */
+  transition: all 0.2s ease;
+
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.chip:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+
+  /* Larger touch target */
+  position: relative;
+}
+
+.deleteButton::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  /* Invisible but increases touch area */
+}
+
+.deleteButton:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.deleteButton:active {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .chip {
+    background: #0A84FF; /* iOS dark mode blue */
+  }
+}

@@ -1,0 +1,190 @@
+/**
+ * CategoryModeView Styles
+ * Main container for category mode
+ * Optimized for iPhone 15 Pro Max (430x932)
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #FFFFFF;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E5EA;
+  background: #F9F9F9;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: #000000;
+}
+
+.switchButton {
+  padding: 6px 12px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.switchButton:hover {
+  background: #0051D5;
+}
+
+.switchButton:active {
+  transform: scale(0.95);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 100px; /* Space for preview */
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+}
+
+.empty p {
+  font-size: 15px;
+  color: #8E8E93;
+  line-height: 1.5;
+}
+
+.section {
+  margin: 16px 12px;
+  background: #F2F2F7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.uncategorizedTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8E8E93;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.uncategorizedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.uncategorizedChip {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #E5E5EA;
+  color: #000000;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.preview {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #F9F9F9;
+  border-top: 1px solid #E5E5EA;
+  padding: 12px 16px;
+  max-height: 120px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.previewTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8E8E93;
+  margin: 0 0 8px 0;
+}
+
+.previewText {
+  font-size: 13px;
+  color: #000000;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #000000;
+  }
+
+  .header {
+    background: #1C1C1E;
+    border-bottom-color: #38383A;
+  }
+
+  .title {
+    color: #FFFFFF;
+  }
+
+  .switchButton {
+    background: #0A84FF;
+  }
+
+  .switchButton:hover {
+    background: #409CFF;
+  }
+
+  .empty p {
+    color: #98989D;
+  }
+
+  .section {
+    background: #1C1C1E;
+  }
+
+  .uncategorizedTitle {
+    color: #98989D;
+  }
+
+  .uncategorizedChip {
+    background: #38383A;
+    color: #FFFFFF;
+  }
+
+  .preview {
+    background: #1C1C1E;
+    border-top-color: #38383A;
+  }
+
+  .previewTitle {
+    color: #98989D;
+  }
+
+  .previewText {
+    color: #FFFFFF;
+  }
+}
+
+/* Safe area support for iPhone */
+@supports (padding: max(0px)) {
+  .preview {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}

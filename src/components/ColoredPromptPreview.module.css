@@ -1,0 +1,176 @@
+/**
+ * ColoredPromptPreview Styles
+ * iOS-inspired preview design for iPhone 15 Pro Max
+ */
+
+.preview {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  background: #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.toggleButton {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggleButton:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.toggleButton:active {
+  transform: scale(0.95);
+  background: #d1d5db;
+}
+
+/* Content */
+.content {
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  line-height: 1.7;
+  color: #1f2937;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.segment {
+  display: inline;
+  transition: opacity 0.15s ease;
+  cursor: help;
+}
+
+.segment:hover {
+  opacity: 0.75;
+}
+
+.separator {
+  color: #9ca3af;
+  margin: 0 2px;
+}
+
+/* Empty State */
+.empty {
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .preview {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .header {
+    border-bottom-color: #374151;
+  }
+
+  .title {
+    color: #d1d5db;
+  }
+
+  .count {
+    color: #d1d5db;
+    background: #374151;
+  }
+
+  .toggleButton {
+    color: #d1d5db;
+  }
+
+  .toggleButton:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  .toggleButton:active {
+    background: #4b5563;
+  }
+
+  .content {
+    color: #f9fafb;
+  }
+
+  .separator {
+    color: #6b7280;
+  }
+
+  .empty {
+    color: #6b7280;
+  }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .preview {
+    padding: 10px 12px;
+  }
+
+  .content {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+
+  .count {
+    font-size: 10px;
+  }
+}

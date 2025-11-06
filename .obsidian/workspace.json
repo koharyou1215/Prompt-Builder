@@ -1,0 +1,220 @@
+{
+  "main": {
+    "id": "3635e82915b78eb5",
+    "type": "split",
+    "children": [
+      {
+        "id": "ba0691c1b16c8bfe",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3ae7d25a05a77677",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "インタラクティブAIプロンプト・ビルダー設計図.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "インタラクティブAIプロンプト・ビルダー設計図"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "64d5bd55f8aabbbf",
+    "type": "split",
+    "children": [
+      {
+        "id": "b39f5f4979c8dd59",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3fd8377f85694b15",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "ファイルエクスプローラ"
+            }
+          },
+          {
+            "id": "5ed46ddb95e79928",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "検索"
+            }
+          },
+          {
+            "id": "650efa1deb157a37",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "ブックマーク"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "18c0a58bbbbbc8cd",
+    "type": "split",
+    "children": [
+      {
+        "id": "f68627d56d127077",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "598da578598e2fd6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "インタラクティブAIプロンプト・ビルダー設計図.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "インタラクティブAIプロンプト・ビルダー設計図へのバックリンク"
+            }
+          },
+          {
+            "id": "9bd14395fb6702fe",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "インタラクティブAIプロンプト・ビルダー設計図.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "インタラクティブAIプロンプト・ビルダー設計図からのアウトゴーイングリンク"
+            }
+          },
+          {
+            "id": "36ee7eb2d8dd2991",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "タグ"
+            }
+          },
+          {
+            "id": "7ef973560aa56592",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "インタラクティブAIプロンプト・ビルダー設計図.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "インタラクティブAIプロンプト・ビルダー設計図のアウトライン"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:クイックスイッチャーを開く": false,
+      "graph:グラフビューを開く": false,
+      "canvas:新規キャンバスを作成": false,
+      "daily-notes:今日のデイリーノートを開く": false,
+      "templates:テンプレートを挿入": false,
+      "command-palette:コマンドパレットを開く": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "3ae7d25a05a77677",
+  "lastOpenFiles": [
+    "dist/assets/sidepanel-AIjkkhAv.js",
+    "dist/assets/sidepanel.html-DHZjCOL7.js",
+    "vite.config.ts.timestamp-1760912444879-c5253c9c43157.mjs",
+    "dist/assets/sidepanel-CdltBtu_.js",
+    "dist/assets/sidepanel.html-Du4CIOXy.js",
+    "vite.config.ts.timestamp-1760912148738-216846117ab9a.mjs",
+    "src/components/AddKeywordModal.tsx",
+    "src/hooks/useCustomKeywords.ts",
+    "src/components/HistoryPanel.tsx",
+    "node_modules/@babel/core/LICENSE",
+    "node_modules/@babel/core/node_modules/convert-source-map/LICENSE",
+    "node_modules/@babel/core/node_modules/convert-source-map/README.md",
+    "node_modules/whatwg-encoding/README.md",
+    "node_modules/@babel/helpers/README.md",
+    "node_modules/@babel/core/README.md",
+    "node_modules/@babel/types/README.md",
+    "icons/icon48.png",
+    "icons/icon16.png",
+    "icons/icon128.png",
+    "node_modules/react-dom/README.md",
+    "node_modules/@babel/parser/README.md",
+    "node_modules/@babel/plugin-transform-react-jsx-self/README.md",
+    "node_modules/@babel/generator/README.md",
+    "node_modules/@babel/plugin-transform-react-jsx-source/README.md",
+    "node_modules/@babel/template/README.md",
+    "node_modules/@babel/helper-module-transforms/README.md",
+    "node_modules/@babel/helper-validator-identifier/README.md",
+    "node_modules/@babel/helper-compilation-targets/README.md",
+    "node_modules/rollup/LICENSE.md",
+    "node_modules/rollup/README.md",
+    "node_modules/@babel/traverse/README.md",
+    "node_modules/magic-string/README.md",
+    "node_modules/nanoid/README.md",
+    "node_modules/pathe/README.md",
+    "node_modules/picomatch/CHANGELOG.md",
+    "node_modules/picomatch/README.md",
+    "node_modules/htmlparser2/node_modules/entities/readme.md",
+    "node_modules/react/README.md",
+    "node_modules/parse5-htmlparser2-tree-adapter/README.md",
+    "dist/icons/icon48.png",
+    "dist/icons/icon16.png",
+    "dist/icons/icon128.png",
+    "public/icons/icon128.png",
+    "public/icons/icon48.png",
+    "public/icons/icon16.png"
+  ]
+}
