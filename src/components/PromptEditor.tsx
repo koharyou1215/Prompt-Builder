@@ -17,7 +17,7 @@ interface CopyFeedback {
 }
 
 const PromptEditor: React.FC = () => {
-  const { promptState, setPositivePrompt } = usePromptContext();
+  const { promptState, setPositivePrompt, resetPrompt } = usePromptContext();
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>({
     type: null,
     message: ''
@@ -66,6 +66,15 @@ const PromptEditor: React.FC = () => {
     void copyToClipboard(promptState.positive, 'positive');
   }, [promptState.positive, copyToClipboard]);
 
+  /**
+   * Clear all prompts
+   */
+  const handleClear = useCallback((): void => {
+    if (window.confirm('すべてのプロンプトをクリアしますか？')) {
+      resetPrompt();
+    }
+  }, [resetPrompt]);
+
   return (
     <div className="prompt-editor">
       <div className="prompt-section">
@@ -79,6 +88,22 @@ const PromptEditor: React.FC = () => {
                 {copyFeedback.message}
               </span>
             )}
+            <button
+              onClick={handleClear}
+              disabled={!promptState.positive.trim() && !promptState.negative.trim()}
+              style={{
+                padding: '4px 12px',
+                fontSize: '12px',
+                background: (promptState.positive.trim() || promptState.negative.trim()) ? '#ef4444' : '#d1d5db',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: (promptState.positive.trim() || promptState.negative.trim()) ? 'pointer' : 'not-allowed',
+              }}
+              title="すべてのプロンプトをクリア"
+            >
+              🗑️ クリア
+            </button>
             <button
               onClick={handleCopyPositive}
               disabled={!promptState.positive.trim()}

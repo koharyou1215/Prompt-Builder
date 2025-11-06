@@ -166,6 +166,16 @@ export interface CustomKeyword {
   readonly createdAt: number;     // Timestamp when created
 }
 
+/**
+ * Custom category created by user
+ */
+export interface CustomCategory {
+  readonly id: string;
+  readonly categoryName: string;  // Category name
+  readonly order: number;         // Display order
+  readonly createdAt: number;     // Timestamp when created
+}
+
 // ===== Category Color Types =====
 
 /**
@@ -186,6 +196,7 @@ export const StorageKeys = {
   AUTO_SAVE: 'autoSave',
   HISTORY: 'history',
   CUSTOM_KEYWORDS: 'customKeywords',
+  CUSTOM_CATEGORIES: 'customCategories',
   CATEGORY_COLORS: 'categoryColors'
 } as const;
 
@@ -198,6 +209,7 @@ export interface StorageData {
   [StorageKeys.AUTO_SAVE]: PromptState;
   [StorageKeys.HISTORY]: ReadonlyArray<HistoryEntry>;
   [StorageKeys.CUSTOM_KEYWORDS]: ReadonlyArray<CustomKeyword>;
+  [StorageKeys.CUSTOM_CATEGORIES]: ReadonlyArray<CustomCategory>;
   [StorageKeys.CATEGORY_COLORS]: ReadonlyArray<CategoryColorConfig>;
 }
 

@@ -37,7 +37,7 @@ const TranslationArea: React.FC = () => {
   const { autoTranslate } = settings;
 
   // Get prompt mode for category view and manual mode switching
-  const { mode, switchMode, restoreOriginal, hasOriginal } = usePromptContext();
+  const { mode, switchMode, restoreOriginal, hasOriginal, resetPrompt, promptState } = usePromptContext();
 
   // Positive prompt translation
   const {
@@ -106,6 +106,15 @@ const TranslationArea: React.FC = () => {
     switchMode('category');
   }, [switchMode]);
 
+  /**
+   * Clear all prompts
+   */
+  const handleClear = useCallback((): void => {
+    if (window.confirm('すべてのプロンプトをクリアしますか？')) {
+      resetPrompt();
+    }
+  }, [resetPrompt]);
+
   return (
     <div className={styles.translationArea}>
       {/* Category Mode View */}
@@ -169,6 +178,19 @@ const TranslationArea: React.FC = () => {
                   📂
                 </button>
               )}
+              <button
+                onClick={handleClear}
+                disabled={!promptState.positive.trim() && !promptState.negative.trim()}
+                className={styles.iconButton}
+                title="すべてのプロンプトをクリア"
+                aria-label="クリア"
+                style={{
+                  background: (promptState.positive.trim() || promptState.negative.trim()) ? '#ef4444' : undefined,
+                  color: (promptState.positive.trim() || promptState.negative.trim()) ? '#fff' : undefined
+                }}
+              >
+                🗑️
+              </button>
               <button
                 onClick={handleCopyPositive}
                 disabled={!posTranslated.trim()}

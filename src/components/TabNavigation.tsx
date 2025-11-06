@@ -14,12 +14,14 @@ interface TabNavigationProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   onAddKeywordClick?: () => void;
+  onManageCategoriesClick?: () => void;
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({
   activeTab,
   onTabChange,
-  onAddKeywordClick
+  onAddKeywordClick,
+  onManageCategoriesClick
 }) => {
   return (
     <nav className="tab-navigation">
@@ -52,6 +54,16 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           title="キーワードを追加"
         >
           ＋
+        </button>
+      )}
+      {onManageCategoriesClick && (
+        <button
+          className="tab-button add-keyword-button"
+          onClick={onManageCategoriesClick}
+          type="button"
+          title="カテゴリーを管理"
+        >
+          📂
         </button>
       )}
     </nav>

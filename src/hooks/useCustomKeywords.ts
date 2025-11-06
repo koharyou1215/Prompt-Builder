@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { CustomKeyword, KeywordCategory, Keyword } from '../types';
+import type { CustomKeyword, CustomCategory, KeywordCategory, Keyword } from '../types';
 import { StorageKeys } from '../types';
 import { keywordCategories } from '../data/keywords';
 import { generateCustomKeywordId } from '../utils/id';
@@ -53,29 +53,42 @@ interface UseCustomKeywordsReturn {
  */
 export const useCustomKeywords = (): UseCustomKeywordsReturn => {
   const [customKeywords, setCustomKeywords] = useState<ReadonlyArray<CustomKeyword>>([]);
+  const [customCategories, setCustomCategories] = useState<ReadonlyArray<CustomCategory>>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Load custom keywords from Chrome Storage
+   * Load custom keywords and categories from Chrome Storage
    */
   const loadCustomKeywords = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const result = await chrome.storage.local.get(StorageKeys.CUSTOM_KEYWORDS);
+      const result = await chrome.storage.local.get([
+        StorageKeys.CUSTOM_KEYWORDS,
+        StorageKeys.CUSTOM_CATEGORIES
+      ]);
+
       const keywords = result[StorageKeys.CUSTOM_KEYWORDS] as CustomKeyword[] | undefined;
+      const categories = result[StorageKeys.CUSTOM_CATEGORIES] as CustomCategory[] | undefined;
 
       if (keywords && Array.isArray(keywords)) {
         setCustomKeywords(keywords);
       } else {
         setCustomKeywords([]);
       }
+
+      if (categories && Array.isArray(categories)) {
+        setCustomCategories(categories);
+      } else {
+        setCustomCategories([]);
+      }
     } catch (err) {
       console.error('Failed to load custom keywords:', err);
       setError('カスタムキーワードの読み込みに失敗しました');
       setCustomKeywords([]);
+      setCustomCategories([]);
     } finally {
       setIsLoading(false);
     }
@@ -89,13 +102,9 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
   }, [loadCustomKeywords]);
 
   /**
-   * Merge custom keywords with default categories
+   * Merge custom keywords and custom categories with default categories
    */
   const allCategories: ReadonlyArray<KeywordCategory> = useCallback(() => {
-    if (customKeywords.length === 0) {
-      return keywordCategories;
-    }
-
     // Group custom keywords by category
     const customByCategory = customKeywords.reduce((acc, custom) => {
       if (!acc[custom.categoryName]) {
@@ -108,8 +117,8 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
       return acc;
     }, {} as Record<string, Keyword[]>);
 
-    // Merge with default categories
-    return keywordCategories.map((category) => {
+    // Merge custom keywords with default categories
+    const defaultCategoriesWithCustomKeywords = keywordCategories.map((category) => {
       const customKeywordsForCategory = customByCategory[category.categoryName] || [];
       if (customKeywordsForCategory.length === 0) {
         return category;
@@ -120,7 +129,21 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
         keywords: [...category.keywords, ...customKeywordsForCategory]
       };
     });
-  }, [customKeywords])();
+
+    // Add custom categories (sorted by order)
+    const sortedCustomCategories = [...customCategories].sort((a, b) => a.order - b.order);
+
+    const customCategoryObjects: KeywordCategory[] = sortedCustomCategories.map((category) => {
+      const keywordsForCategory = customByCategory[category.categoryName] || [];
+      return {
+        categoryName: category.categoryName,
+        keywords: keywordsForCategory
+      };
+    });
+
+    // Return default categories + custom categories
+    return [...defaultCategoriesWithCustomKeywords, ...customCategoryObjects];
+  }, [customKeywords, customCategories])();
 
   /**
    * Add new custom keyword

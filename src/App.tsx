@@ -14,12 +14,14 @@ import MainPanel from './components/MainPanel';
 import HistoryPanel from './components/HistoryPanel';
 import SettingsPanel from './components/SettingsPanel';
 import AddKeywordModal from './components/AddKeywordModal';
+import CategoryManagementModal from './components/CategoryManagementModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('main');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState<boolean>(false);
 
   const handleAddKeywordClick = (): void => {
     setIsModalOpen(true);
@@ -27,6 +29,14 @@ const App: React.FC = () => {
 
   const handleCloseModal = (): void => {
     setIsModalOpen(false);
+  };
+
+  const handleManageCategoriesClick = (): void => {
+    setIsCategoryManagementOpen(true);
+  };
+
+  const handleCloseCategoryManagement = (): void => {
+    setIsCategoryManagementOpen(false);
   };
 
   return (
@@ -39,6 +49,7 @@ const App: React.FC = () => {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 onAddKeywordClick={handleAddKeywordClick}
+                onManageCategoriesClick={handleManageCategoriesClick}
               />
 
               <main className="app-main">
@@ -48,6 +59,7 @@ const App: React.FC = () => {
               </main>
 
               <AddKeywordModal isOpen={isModalOpen} onClose={handleCloseModal} />
+              <CategoryManagementModal isOpen={isCategoryManagementOpen} onClose={handleCloseCategoryManagement} />
             </div>
           </PromptProvider>
         </CategoryColorProvider>
