@@ -172,7 +172,11 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
     });
 
     // Add custom categories (sorted by order)
-    const sortedCustomCategories = [...customCategories].sort((a, b) => a.order - b.order);
+    const sortedCustomCategories = [...customCategories].sort((a, b) => {
+      const orderA = a.order ?? 0;
+      const orderB = b.order ?? 0;
+      return orderA - orderB;
+    });
 
     const customCategoryObjects: KeywordCategory[] = sortedCustomCategories.map((category) => {
       const keywordsForCategory = customByCategory[category.categoryName] || [];

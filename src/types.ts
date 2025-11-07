@@ -163,7 +163,7 @@ export interface CustomKeyword {
   readonly categoryName: string;  // Category to add to
   readonly ja: string;            // Japanese display text
   readonly en: string;            // English prompt keyword
-  readonly order: number;         // Display order within category
+  readonly order?: number;        // Display order within category (optional for backward compatibility)
   readonly createdAt: number;     // Timestamp when created
 }
 

@@ -133,7 +133,11 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
 
     const keywordsInCategory = customKeywords
       .filter((kw) => kw.categoryName === categoryName)
-      .sort((a, b) => a.order - b.order);
+      .sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        return orderA - orderB;
+      });
 
     const reordered = [...keywordsInCategory];
     const temp = reordered[index];
@@ -151,7 +155,11 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
 
     const keywordsInCategory = customKeywords
       .filter((kw) => kw.categoryName === categoryName)
-      .sort((a, b) => a.order - b.order);
+      .sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        return orderA - orderB;
+      });
 
     const reordered = [...keywordsInCategory];
     const temp = reordered[index];
@@ -198,7 +206,11 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
   if (!isOpen) return null;
 
   // Sort categories by order
-  const sortedCategories = [...customCategories].sort((a, b) => a.order - b.order);
+  const sortedCategories = [...customCategories].sort((a, b) => {
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    return orderA - orderB;
+  });
 
   return (
     <div
@@ -289,7 +301,11 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
               {sortedCategories.map((category, index) => {
                 const keywordsInCategory = customKeywords
                   .filter((kw) => kw.categoryName === category.categoryName)
-                  .sort((a, b) => a.order - b.order);
+                  .sort((a, b) => {
+                    const orderA = a.order ?? 0;
+                    const orderB = b.order ?? 0;
+                    return orderA - orderB;
+                  });
                 const isExpanded = expandedCategories.has(category.id);
 
                 return (
