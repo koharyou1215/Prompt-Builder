@@ -78,29 +78,44 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
 
       if (keywords && Array.isArray(keywords)) {
         // Migration: Add order field to keywords that don't have it
-        const migratedKeywords = keywords.map((kw, index) => {
-          if (typeof kw.order === 'number') {
-            return kw;
-          }
-          // Group by category and assign order
-          const keywordsInSameCategory = keywords.filter(
-            (k) => k.categoryName === kw.categoryName && keywords.indexOf(k) <= index
-          );
-          return {
-            ...kw,
-            order: keywordsInSameCategory.length - 1
-          };
-        });
-
-        // Save migrated keywords back to storage if any were migrated
         const needsMigration = keywords.some((kw) => typeof kw.order !== 'number');
+
         if (needsMigration) {
+          console.log('Migrating keywords - adding order field');
+
+          // Group keywords by category first
+          const keywordsByCategory: Record<string, typeof keywords> = {};
+          keywords.forEach((kw) => {
+            if (!keywordsByCategory[kw.categoryName]) {
+              keywordsByCategory[kw.categoryName] = [];
+            }
+            keywordsByCategory[kw.categoryName]!.push(kw);
+          });
+
+          // Assign order within each category
+          const migratedKeywords = keywords.map((kw) => {
+            if (typeof kw.order === 'number') {
+              return kw;
+            }
+            const categoryKeywords = keywordsByCategory[kw.categoryName] || [];
+            const indexInCategory = categoryKeywords.indexOf(kw);
+            return {
+              ...kw,
+              order: indexInCategory >= 0 ? indexInCategory : 0
+            };
+          });
+
+          console.log('Migration complete:', migratedKeywords.length, 'keywords migrated');
+
+          // Save migrated keywords back to storage
           await chrome.storage.local.set({
             [StorageKeys.CUSTOM_KEYWORDS]: migratedKeywords
           });
-        }
 
-        setCustomKeywords(migratedKeywords);
+          setCustomKeywords(migratedKeywords);
+        } else {
+          setCustomKeywords(keywords);
+        }
       } else {
         setCustomKeywords([]);
       }
