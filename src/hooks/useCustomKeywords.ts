@@ -30,6 +30,9 @@ interface UseCustomKeywordsReturn {
   /** Delete custom keyword */
   deleteKeyword: (id: string) => Promise<void>;
 
+  /** Reorder keywords within a category */
+  reorderKeywords: (categoryName: string, reorderedKeywords: ReadonlyArray<CustomKeyword>) => Promise<void>;
+
   /** Loading state */
   readonly isLoading: boolean;
 
@@ -74,7 +77,30 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
       const categories = result[StorageKeys.CUSTOM_CATEGORIES] as CustomCategory[] | undefined;
 
       if (keywords && Array.isArray(keywords)) {
-        setCustomKeywords(keywords);
+        // Migration: Add order field to keywords that don't have it
+        const migratedKeywords = keywords.map((kw, index) => {
+          if (typeof kw.order === 'number') {
+            return kw;
+          }
+          // Group by category and assign order
+          const keywordsInSameCategory = keywords.filter(
+            (k) => k.categoryName === kw.categoryName && keywords.indexOf(k) <= index
+          );
+          return {
+            ...kw,
+            order: keywordsInSameCategory.length - 1
+          };
+        });
+
+        // Save migrated keywords back to storage if any were migrated
+        const needsMigration = keywords.some((kw) => typeof kw.order !== 'number');
+        if (needsMigration) {
+          await chrome.storage.local.set({
+            [StorageKeys.CUSTOM_KEYWORDS]: migratedKeywords
+          });
+        }
+
+        setCustomKeywords(migratedKeywords);
       } else {
         setCustomKeywords([]);
       }
@@ -161,12 +187,19 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
         throw new Error('カテゴリー、日本語、英語のすべてを入力してください');
       }
 
+      // Calculate order (add to end of category)
+      const keywordsInCategory = customKeywords.filter(
+        (kw) => kw.categoryName === categoryName
+      );
+      const order = keywordsInCategory.length;
+
       // Create new custom keyword
       const newKeyword: CustomKeyword = {
         id: generateCustomKeywordId(),
         categoryName,
         ja: ja.trim(),
         en: en.trim(),
+        order,
         createdAt: Date.now()
       };
 
@@ -216,11 +249,52 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
     }
   }, [customKeywords]);
 
+  /**
+   * Reorder keywords within a category
+   */
+  const reorderKeywords = useCallback(async (
+    categoryName: string,
+    reorderedKeywords: ReadonlyArray<CustomKeyword>
+  ): Promise<void> => {
+    try {
+      setError(null);
+
+      // Update order field for reordered keywords
+      const keywordsWithNewOrder = reorderedKeywords.map((kw, index) => ({
+        ...kw,
+        order: index
+      }));
+
+      // Merge with keywords from other categories
+      const otherKeywords = customKeywords.filter(
+        (kw) => kw.categoryName !== categoryName
+      );
+      const updatedKeywords = [...otherKeywords, ...keywordsWithNewOrder];
+
+      setCustomKeywords(updatedKeywords);
+
+      // Save to Chrome Storage
+      await chrome.storage.local.set({
+        [StorageKeys.CUSTOM_KEYWORDS]: updatedKeywords
+      });
+
+      console.log('Keywords reordered in category:', categoryName);
+    } catch (err) {
+      const errorMessage = err instanceof Error
+        ? err.message
+        : 'キーワードの並び替えに失敗しました';
+      setError(errorMessage);
+      console.error('Failed to reorder keywords:', err);
+      throw err;
+    }
+  }, [customKeywords]);
+
   return {
     allCategories,
     customKeywords,
     addKeyword,
     deleteKeyword,
+    reorderKeywords,
     isLoading,
     error
   };

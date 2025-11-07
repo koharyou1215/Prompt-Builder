@@ -20,7 +20,7 @@ interface CategoryManagementModalProps {
 
 const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpen, onClose }) => {
   const { customCategories, addCategory, deleteCategory, reorderCategories } = useCategoryManagement();
-  const { customKeywords, deleteKeyword } = useCustomKeywords();
+  const { customKeywords, deleteKeyword, reorderKeywords } = useCustomKeywords();
 
   const [newCategoryName, setNewCategoryName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +124,42 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
       console.error(err);
     }
   }, [deleteKeyword]);
+
+  /**
+   * Handle move keyword up
+   */
+  const handleMoveKeywordUp = useCallback(async (categoryName: string, index: number): Promise<void> => {
+    if (index === 0) return;
+
+    const keywordsInCategory = customKeywords
+      .filter((kw) => kw.categoryName === categoryName)
+      .sort((a, b) => a.order - b.order);
+
+    const reordered = [...keywordsInCategory];
+    const temp = reordered[index];
+    reordered[index] = reordered[index - 1]!;
+    reordered[index - 1] = temp!;
+
+    await reorderKeywords(categoryName, reordered);
+  }, [customKeywords, reorderKeywords]);
+
+  /**
+   * Handle move keyword down
+   */
+  const handleMoveKeywordDown = useCallback(async (categoryName: string, index: number, totalCount: number): Promise<void> => {
+    if (index === totalCount - 1) return;
+
+    const keywordsInCategory = customKeywords
+      .filter((kw) => kw.categoryName === categoryName)
+      .sort((a, b) => a.order - b.order);
+
+    const reordered = [...keywordsInCategory];
+    const temp = reordered[index];
+    reordered[index] = reordered[index + 1]!;
+    reordered[index + 1] = temp!;
+
+    await reorderKeywords(categoryName, reordered);
+  }, [customKeywords, reorderKeywords]);
 
   /**
    * Toggle category expansion
@@ -251,7 +287,9 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {sortedCategories.map((category, index) => {
-                const keywordsInCategory = customKeywords.filter((kw) => kw.categoryName === category.categoryName);
+                const keywordsInCategory = customKeywords
+                  .filter((kw) => kw.categoryName === category.categoryName)
+                  .sort((a, b) => a.order - b.order);
                 const isExpanded = expandedCategories.has(category.id);
 
                 return (
@@ -348,7 +386,7 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
                           </div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {keywordsInCategory.map((keyword) => (
+                            {keywordsInCategory.map((keyword, kwIndex) => (
                               <div
                                 key={keyword.id}
                                 style={{
@@ -364,6 +402,38 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
                                 <span style={{ flex: 1 }}>
                                   {keyword.ja} <span style={{ color: '#6b7280' }}>({keyword.en})</span>
                                 </span>
+                                <button
+                                  onClick={() => void handleMoveKeywordUp(category.categoryName, kwIndex)}
+                                  disabled={kwIndex === 0}
+                                  style={{
+                                    padding: '2px 8px',
+                                    fontSize: '12px',
+                                    background: kwIndex === 0 ? '#e5e7eb' : '#3b82f6',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: kwIndex === 0 ? 'not-allowed' : 'pointer',
+                                  }}
+                                  title="上に移動"
+                                >
+                                  ↑
+                                </button>
+                                <button
+                                  onClick={() => void handleMoveKeywordDown(category.categoryName, kwIndex, keywordsInCategory.length)}
+                                  disabled={kwIndex === keywordsInCategory.length - 1}
+                                  style={{
+                                    padding: '2px 8px',
+                                    fontSize: '12px',
+                                    background: kwIndex === keywordsInCategory.length - 1 ? '#e5e7eb' : '#3b82f6',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: kwIndex === keywordsInCategory.length - 1 ? 'not-allowed' : 'pointer',
+                                  }}
+                                  title="下に移動"
+                                >
+                                  ↓
+                                </button>
                                 <button
                                   onClick={() => void handleDeleteKeyword(keyword.id, keyword.ja)}
                                   style={{
