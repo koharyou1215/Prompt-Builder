@@ -16,7 +16,7 @@ interface TabNavigationProps {
   onAddKeywordClick?: () => void;
 }
 
-const TabNavigation: React.FC<TabNavigationProps> = ({
+const TabNavigation: React.FC<TabNavigationProps> = React.memo(({
   activeTab,
   onTabChange,
   onAddKeywordClick
@@ -56,6 +56,9 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
       )}
     </nav>
   );
-};
+});
+
+// Set display name for React DevTools
+TabNavigation.displayName = 'TabNavigation';
 
 export default TabNavigation;

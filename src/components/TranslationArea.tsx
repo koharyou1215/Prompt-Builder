@@ -11,26 +11,17 @@
  * translation nuances cause continuous back-and-forth translation.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePromptContext } from '../contexts/PromptContext';
 import { CategoryModeView } from './CategoryModeView';
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
+import { TEXTAREA_ROWS } from '../constants';
 import styles from './TranslationArea.module.css';
 
-/**
- * Copy feedback state type
- */
-interface CopyFeedback {
-  readonly type: 'positive' | null;
-  readonly message: string;
-}
-
 const TranslationArea: React.FC = () => {
-  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>({
-    type: null,
-    message: ''
-  });
+  const { copyToClipboard, copyFeedback } = useCopyToClipboard();
 
   // Get settings for auto-translate status
   const { settings } = useSettings();
@@ -52,38 +43,6 @@ const TranslationArea: React.FC = () => {
   const handlePositiveChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     handlePosChange(event.target.value);
   };
-
-  /**
-   * Copy text to clipboard
-   */
-  const copyToClipboard = useCallback(async (
-    text: string,
-    type: 'positive'
-  ): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(text);
-
-      setCopyFeedback({
-        type,
-        message: '✓ コピーしました'
-      });
-
-      setTimeout(() => {
-        setCopyFeedback({ type: null, message: '' });
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-
-      setCopyFeedback({
-        type,
-        message: '⚠ コピーに失敗しました'
-      });
-
-      setTimeout(() => {
-        setCopyFeedback({ type: null, message: '' });
-      }, 2000);
-    }
-  }, []);
 
   /**
    * Copy positive Japanese translation
@@ -185,7 +144,7 @@ const TranslationArea: React.FC = () => {
             value={posTranslated}
             onChange={handlePositiveChange}
             placeholder="日本語でプロンプトを入力または編集できます"
-            rows={12}
+            rows={TEXTAREA_ROWS.TRANSLATION_AREA}
             className={`${styles.textarea} ${posError ? styles.textareaError : ''}`}
           />
           {posError && (

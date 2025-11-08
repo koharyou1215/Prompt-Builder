@@ -12,6 +12,7 @@
 import React, { useState, useCallback } from 'react';
 import { useHistory } from '../hooks/useHistory';
 import { useTranslation, useNegativeTranslation } from '../hooks/useTranslation';
+import { formatHistoryDate, truncateText } from '../utils/formatters';
 import type { HistoryEntry } from '../types';
 
 const HistoryPanel: React.FC = () => {
@@ -67,7 +68,7 @@ const HistoryPanel: React.FC = () => {
    */
   const handleDelete = useCallback(async (entry: HistoryEntry): Promise<void> => {
     const confirmed = window.confirm(
-      `履歴を削除しますか？\n\n${entry.name || formatDate(entry.timestamp)}`
+      `履歴を削除しますか？\n\n${entry.name || formatHistoryDate(entry.timestamp)}`
     );
 
     if (!confirmed) return;
@@ -79,28 +80,6 @@ const HistoryPanel: React.FC = () => {
       console.error(err);
     }
   }, [deleteFromHistory]);
-
-  /**
-   * Format timestamp to readable date
-   */
-  const formatDate = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  /**
-   * Truncate text for preview
-   */
-  const truncate = (text: string, maxLength: number = 50): string => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
 
   if (isLoading) {
     return (
@@ -259,7 +238,7 @@ const HistoryPanel: React.FC = () => {
                       </div>
                     )}
                     <div style={{ fontSize: '11px', color: '#6b7280' }}>
-                      {formatDate(entry.timestamp)}
+                      {formatHistoryDate(entry.timestamp)}
                     </div>
                   </div>
                 </div>
@@ -267,14 +246,14 @@ const HistoryPanel: React.FC = () => {
                 {/* Prompt Preview */}
                 <div style={{ fontSize: '12px', marginBottom: '8px' }}>
                   <div style={{ color: '#374151', marginBottom: '4px' }}>
-                    <strong>英語:</strong> {truncate(entry.positive)}
+                    <strong>英語:</strong> {truncateText(entry.positive)}
                   </div>
                   <div style={{ color: '#059669' }}>
-                    <strong>日本語:</strong> {truncate(entry.positiveJa)}
+                    <strong>日本語:</strong> {truncateText(entry.positiveJa)}
                   </div>
                   {entry.negative && (
                     <div style={{ color: '#dc2626', marginTop: '4px' }}>
-                      <strong>ネガティブ:</strong> {truncate(entry.negative)}
+                      <strong>ネガティブ:</strong> {truncateText(entry.negative)}
                     </div>
                   )}
                 </div>

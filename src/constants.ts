@@ -77,6 +77,23 @@ export const ANIMATION_DURATION_MS = 200;
  */
 export const MIN_TOUCH_TARGET_SIZE = 44;
 
+/**
+ * Textarea rows configuration
+ */
+export const TEXTAREA_ROWS = {
+  PROMPT_EDITOR: 20,
+  TRANSLATION_AREA: 12
+} as const;
+
+/**
+ * Modal dimensions
+ */
+export const MODAL_DIMENSIONS = {
+  MAX_WIDTH: '500px',
+  MAX_HEIGHT: '90vh',
+  PADDING: '16px'
+} as const;
+
 // ===== ID Generation =====
 
 /**

@@ -8,6 +8,7 @@ import React from 'react';
 import { usePromptContext } from '../contexts/PromptContext';
 import { CategorySection } from './CategorySection';
 import { PromptBuilder } from '../utils/promptBuilder';
+import { logger } from '../utils/logger';
 import styles from './CategoryModeView.module.css';
 
 /**
@@ -16,10 +17,12 @@ import styles from './CategoryModeView.module.css';
 export const CategoryModeView: React.FC = () => {
   const { categoryState, mode, switchMode } = usePromptContext();
 
-  // Debug logging
+  // Debug logging (development only)
   React.useEffect(() => {
-    console.log('[CategoryModeView] mode:', mode);
-    console.log('[CategoryModeView] categoryState:', categoryState);
+    if (import.meta.env.DEV) {
+      logger.debug('[CategoryModeView] mode:', mode);
+      logger.debug('[CategoryModeView] categoryState:', categoryState);
+    }
   }, [mode, categoryState]);
 
   // Build preview text
@@ -29,7 +32,9 @@ export const CategoryModeView: React.FC = () => {
   }, [categoryState, builder]);
 
   if (mode !== 'category') {
-    console.log('[CategoryModeView] Not in category mode, returning null');
+    if (import.meta.env.DEV) {
+      logger.debug('[CategoryModeView] Not in category mode, returning null');
+    }
     return null;
   }
 

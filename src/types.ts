@@ -186,7 +186,8 @@ export const StorageKeys = {
   AUTO_SAVE: 'autoSave',
   HISTORY: 'history',
   CUSTOM_KEYWORDS: 'customKeywords',
-  CATEGORY_COLORS: 'categoryColors'
+  CATEGORY_COLORS: 'categoryColors',
+  SETTINGS: 'app-settings'
 } as const;
 
 export type StorageKey = typeof StorageKeys[keyof typeof StorageKeys];

@@ -21,8 +21,9 @@ interface ColorPickerProps {
 /**
  * ColorPicker Component
  * Displays preset color palette and custom color input
+ * Memoized to prevent unnecessary re-renders
  */
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
   value,
   onChange,
   presetColors = DEFAULT_CATEGORY_COLORS,
@@ -73,6 +74,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       </div>
     </div>
   );
-};
+});
+
+// Set display name for React DevTools
+ColorPicker.displayName = 'ColorPicker';
 
 export default ColorPicker;

@@ -8,7 +8,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { isChromeExtension } from '../services/storageService';
+import { loadFromStorage, saveToStorage } from '../services/storageService';
+import { StorageKeys } from '../types';
 
 // Approved Gemini models (from RULES.md)
 export const APPROVED_MODELS = [
@@ -38,8 +39,6 @@ export interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
 
-const STORAGE_KEY = 'app-settings';
-
 const DEFAULT_SETTINGS: SettingsState = {
   autoTranslate: true,
   selectedModel: 'gemini-2.5-pro',
@@ -54,19 +53,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const loadSettings = async (): Promise<void> => {
       try {
-        let saved: SettingsState | undefined;
+        const response = await loadFromStorage<SettingsState>(StorageKeys.SETTINGS);
 
-        if (isChromeExtension()) {
-          const result = await chrome.storage.local.get(STORAGE_KEY);
-          saved = result[STORAGE_KEY] as SettingsState | undefined;
-        } else {
-          const storedValue = localStorage.getItem(STORAGE_KEY);
-          if (storedValue) {
-            saved = JSON.parse(storedValue) as SettingsState;
-          }
-        }
+        if (response.success && response.data) {
+          const saved = response.data;
 
-        if (saved) {
           // Validate model ID
           const isValidModel = APPROVED_MODELS.includes(saved.selectedModel);
           const isValidTranslatorType = saved.translatorType === 'gemini' || saved.translatorType === 'google-translate';
@@ -93,10 +84,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const saveSettings = async (): Promise<void> => {
       try {
-        if (isChromeExtension()) {
-          await chrome.storage.local.set({ [STORAGE_KEY]: settings });
-        } else {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        const response = await saveToStorage(StorageKeys.SETTINGS, settings);
+        if (!response.success) {
+          console.error('Failed to save settings:', response.error);
         }
       } catch (error: unknown) {
         console.error('Failed to save settings:', error);

@@ -5,7 +5,7 @@
  * Displays all categories with color pickers and reset functionality.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCategoryColor } from '../contexts/CategoryColorContext';
 import { extractCategoryNames } from '../services/categoryColorService';
 import { keywordCategories, negativeKeywordCategories } from '../data/keywords';
@@ -28,9 +28,11 @@ export const CategoryColorSettings: React.FC = () => {
 
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Extract all category names
-  const allCategories = [...keywordCategories, ...negativeKeywordCategories];
-  const categoryNames = extractCategoryNames(allCategories);
+  // Extract all category names (memoized since keyword categories are static)
+  const categoryNames = useMemo(() => {
+    const allCategories = [...keywordCategories, ...negativeKeywordCategories];
+    return extractCategoryNames(allCategories);
+  }, []);
 
   /**
    * Toggle category expansion

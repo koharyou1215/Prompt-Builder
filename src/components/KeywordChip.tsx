@@ -16,8 +16,9 @@ interface KeywordChipProps {
 
 /**
  * KeywordChip component displays keyword with optional weight and color
+ * Memoized to prevent unnecessary re-renders
  */
-export const KeywordChip: React.FC<KeywordChipProps> = ({ keyword, onDelete }) => {
+export const KeywordChip: React.FC<KeywordChipProps> = React.memo(({ keyword, onDelete }) => {
   const displayText = keyword.weight ? `${keyword.ja}${keyword.weight}` : keyword.ja;
 
   // Apply custom color if specified, otherwise use default blue
@@ -38,6 +39,9 @@ export const KeywordChip: React.FC<KeywordChipProps> = ({ keyword, onDelete }) =
       </button>
     </div>
   );
-};
+});
+
+// Set display name for React DevTools
+KeywordChip.displayName = 'KeywordChip';
 
 export default KeywordChip;

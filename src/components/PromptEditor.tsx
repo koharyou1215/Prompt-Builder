@@ -4,60 +4,19 @@
  * with copy functionality and colored preview
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { usePromptContext } from '../contexts/PromptContext';
 import { ColoredPromptPreview } from './ColoredPromptPreview';
-
-/**
- * Copy feedback state type
- */
-interface CopyFeedback {
-  readonly type: 'positive' | null;
-  readonly message: string;
-}
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
+import { TEXTAREA_ROWS } from '../constants';
 
 const PromptEditor: React.FC = () => {
   const { promptState, setPositivePrompt } = usePromptContext();
-  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>({
-    type: null,
-    message: ''
-  });
+  const { copyToClipboard, copyFeedback } = useCopyToClipboard();
 
   const handlePositiveChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     setPositivePrompt(event.target.value);
   };
-
-  /**
-   * Copy text to clipboard
-   */
-  const copyToClipboard = useCallback(async (
-    text: string,
-    type: 'positive'
-  ): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(text);
-
-      setCopyFeedback({
-        type,
-        message: '✓ コピーしました'
-      });
-
-      setTimeout(() => {
-        setCopyFeedback({ type: null, message: '' });
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-
-      setCopyFeedback({
-        type,
-        message: '⚠ コピーに失敗しました'
-      });
-
-      setTimeout(() => {
-        setCopyFeedback({ type: null, message: '' });
-      }, 2000);
-    }
-  }, []);
 
   /**
    * Copy positive prompt
@@ -102,7 +61,7 @@ const PromptEditor: React.FC = () => {
           value={promptState.positive}
           onChange={handlePositiveChange}
           placeholder="Enter positive prompt keywords (e.g., masterpiece, 1girl, smile)"
-          rows={20}
+          rows={TEXTAREA_ROWS.PROMPT_EDITOR}
           style={{
             width: '100%',
             padding: '8px',

@@ -8,11 +8,12 @@
  * - Merge with default keywords
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CustomKeyword, KeywordCategory, Keyword } from '../types';
 import { StorageKeys } from '../types';
 import { keywordCategories } from '../data/keywords';
 import { generateCustomKeywordId } from '../utils/id';
+import { loadFromStorage, saveToStorage } from '../services/storageService';
 
 /**
  * useCustomKeywords hook return type
@@ -64,11 +65,12 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
       setIsLoading(true);
       setError(null);
 
-      const result = await chrome.storage.local.get(StorageKeys.CUSTOM_KEYWORDS);
-      const keywords = result[StorageKeys.CUSTOM_KEYWORDS] as CustomKeyword[] | undefined;
+      const response = await loadFromStorage<ReadonlyArray<CustomKeyword>>(
+        StorageKeys.CUSTOM_KEYWORDS
+      );
 
-      if (keywords && Array.isArray(keywords)) {
-        setCustomKeywords(keywords);
+      if (response.success && response.data) {
+        setCustomKeywords(response.data);
       } else {
         setCustomKeywords([]);
       }
@@ -91,7 +93,7 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
   /**
    * Merge custom keywords with default categories
    */
-  const allCategories: ReadonlyArray<KeywordCategory> = useCallback(() => {
+  const allCategories: ReadonlyArray<KeywordCategory> = useMemo(() => {
     if (customKeywords.length === 0) {
       return keywordCategories;
     }
@@ -120,7 +122,7 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
         keywords: [...category.keywords, ...customKeywordsForCategory]
       };
     });
-  }, [customKeywords])();
+  }, [customKeywords]);
 
   /**
    * Add new custom keyword
@@ -152,9 +154,10 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
       setCustomKeywords(updatedKeywords);
 
       // Save to Chrome Storage
-      await chrome.storage.local.set({
-        [StorageKeys.CUSTOM_KEYWORDS]: updatedKeywords
-      });
+      const saveResponse = await saveToStorage(StorageKeys.CUSTOM_KEYWORDS, updatedKeywords);
+      if (!saveResponse.success) {
+        throw saveResponse.error || new Error('保存に失敗しました');
+      }
 
       console.log('Custom keyword added:', newKeyword);
     } catch (err) {
@@ -178,9 +181,10 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
       setCustomKeywords(updatedKeywords);
 
       // Save to Chrome Storage
-      await chrome.storage.local.set({
-        [StorageKeys.CUSTOM_KEYWORDS]: updatedKeywords
-      });
+      const saveResponse = await saveToStorage(StorageKeys.CUSTOM_KEYWORDS, updatedKeywords);
+      if (!saveResponse.success) {
+        throw saveResponse.error || new Error('保存に失敗しました');
+      }
 
       console.log('Custom keyword deleted:', id);
     } catch (err) {

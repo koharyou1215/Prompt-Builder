@@ -12,6 +12,7 @@
 import React, { useState, useCallback } from 'react';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
 import { keywordCategories, negativeKeywordCategories } from '../data/keywords';
+import { MAX_KEYWORD_LENGTH } from '../constants';
 
 interface AddKeywordModalProps {
   readonly isOpen: boolean;
@@ -49,6 +50,12 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
       }
       if (!enText.trim()) {
         throw new Error('英語を入力してください');
+      }
+      if (jaText.length > MAX_KEYWORD_LENGTH) {
+        throw new Error(`日本語は${MAX_KEYWORD_LENGTH}文字以内で入力してください`);
+      }
+      if (enText.length > MAX_KEYWORD_LENGTH) {
+        throw new Error(`英語は${MAX_KEYWORD_LENGTH}文字以内で入力してください`);
       }
 
       await addKeyword(categoryName, jaText, enText);
