@@ -4,9 +4,11 @@
  * with copy functionality and colored preview
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { usePromptContext } from '../contexts/PromptContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { ColoredPromptPreview } from './ColoredPromptPreview';
+import { organizeAndFormatTags } from '../utils/tagOrganizer';
 
 /**
  * Copy feedback state type
@@ -18,10 +20,24 @@ interface CopyFeedback {
 
 const PromptEditor: React.FC = () => {
   const { promptState, setPositivePrompt } = usePromptContext();
+  const { settings } = useSettings();
+  const { organizeTagsByCategory } = settings;
+
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>({
     type: null,
     message: ''
   });
+
+  // Organize English prompt by category for copying (if enabled)
+  // タグ整理が有効な場合、コピー用にカテゴリ別に整理する（英語版）
+  const organizedTextForCopy = useMemo(() => {
+    if (!promptState.positive || !organizeTagsByCategory) {
+      return promptState.positive;
+    }
+
+    // Organize tags by category with line breaks (English)
+    return organizeAndFormatTags(promptState.positive, 'en', false);
+  }, [promptState.positive, organizeTagsByCategory]);
 
   const handlePositiveChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     setPositivePrompt(event.target.value);
@@ -60,11 +76,11 @@ const PromptEditor: React.FC = () => {
   }, []);
 
   /**
-   * Copy positive prompt
+   * Copy positive prompt (organized if enabled)
    */
   const handleCopyPositive = useCallback((): void => {
-    void copyToClipboard(promptState.positive, 'positive');
-  }, [promptState.positive, copyToClipboard]);
+    void copyToClipboard(organizedTextForCopy, 'positive');
+  }, [organizedTextForCopy, copyToClipboard]);
 
   return (
     <div className="prompt-editor">
@@ -91,7 +107,7 @@ const PromptEditor: React.FC = () => {
                 borderRadius: '4px',
                 cursor: promptState.positive.trim() ? 'pointer' : 'not-allowed',
               }}
-              title="英語プロンプトをコピー"
+              title={organizeTagsByCategory ? "英語プロンプトをコピー（カテゴリ別整理）" : "英語プロンプトをコピー"}
             >
               📋 コピー
             </button>
