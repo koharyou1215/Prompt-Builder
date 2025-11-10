@@ -236,7 +236,8 @@ const classifyByPattern = (tag: string): string | null => {
   }
 
   // Body type - キャラクター
-  if (tag.includes('バスト') || tag.includes('胸') || tag.includes('乳') || tag.includes('体型')) {
+  if (tag.includes('バスト') || tag.includes('胸') || tag.includes('乳') || tag.includes('体型') ||
+      tag.includes('ぺちゃ') || tag.includes('歯') || tag.includes('耳') || tag.includes('尻尾')) {
     return 'キャラクター';
   }
 
@@ -245,17 +246,19 @@ const classifyByPattern = (tag: string): string | null => {
       tag.includes('ストッキング') || tag.includes('靴') || tag.includes('ベルト') ||
       tag.includes('ガーター') || tag.includes('コスチューム') || tag.includes('コスプレ') ||
       tag.includes('メイク') || tag.includes('ジュエリー') || tag.includes('イヤリング') ||
-      tag.includes('アクセサリー') || tag.includes('ヘアクリップ')) {
+      tag.includes('アクセサリー') || tag.includes('ヘアクリップ') ||
+      tag.includes('ギャル') || tag.includes('フレア')) {
     return '服装';
   }
 
   // Pose keywords - ポーズ
   if (tag.includes('ポーズ') ||
-      tag.includes('立ちポーズ') || tag.includes('座') || tag.includes('寝') ||
-      tag.includes('腕を') || tag.includes('足を') || tag.includes('脚を') ||
+      tag.includes('立ちポーズ') || tag.includes('立ち') || tag.includes('座') || tag.includes('寝') ||
+      tag.includes('腕を') || tag.includes('足を') || tag.includes('脚を') || tag.includes('手を') ||
       tag.includes('拘束') || tag.includes('縛') || tag.includes('ボンデージ') ||
       tag.includes('ロープ') || tag.includes('吊り下げ') || tag.includes('組む') ||
-      tag.includes('後ろで組む') || tag.includes('背中の後ろ')) {
+      tag.includes('後ろで組む') || tag.includes('背中の後ろ') ||
+      tag.includes('指差し') || tag.includes('指を') || tag.includes('わずかに開いた')) {
     return 'ポーズ';
   }
 
@@ -496,6 +499,13 @@ export const organizeAndFormatTags = (
   }
 
   const classified = organizeTags(text, language);
+
+  // Debug: Log uncategorized tags in development
+  const uncategorized = classified['その他'];
+  if (import.meta.env.DEV && uncategorized && uncategorized.length > 0) {
+    console.log('[TagOrganizer] Uncategorized tags:', uncategorized);
+  }
+
   return formatOrganizedTags(classified, {
     includeEmptyCategories: false,
     includeCategoryLabels,
