@@ -1,6 +1,6 @@
 /**
  * EditKeywordModal component
- * Modal dialog for editing custom keywords
+ * Modal dialog for editing keywords (custom or default)
  *
  * Features:
  * - Category selection dropdown (pre-filled)
@@ -12,11 +12,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
 import { keywordCategories, negativeKeywordCategories } from '../data/keywords';
-import type { CustomKeyword } from '../types';
 
 interface EditKeywordModalProps {
   readonly isOpen: boolean;
-  readonly keyword: CustomKeyword | null;
+  readonly keyword: { categoryName: string; ja: string; en: string } | null;
   onClose: () => void;
 }
 
@@ -26,6 +25,8 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
   const [categoryName, setCategoryName] = useState<string>('');
   const [jaText, setJaText] = useState<string>('');
   const [enText, setEnText] = useState<string>('');
+  const [originalEn, setOriginalEn] = useState<string>(''); // Store original English keyword
+  const [originalCategory, setOriginalCategory] = useState<string>(''); // Store original category
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +44,8 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
       setCategoryName(keyword.categoryName);
       setJaText(keyword.ja);
       setEnText(keyword.en);
+      setOriginalEn(keyword.en);
+      setOriginalCategory(keyword.categoryName);
       setError(null);
     }
   }, [keyword]);
@@ -67,7 +70,9 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
         throw new Error('英語を入力してください');
       }
 
-      await updateKeyword(keyword.id, categoryName, jaText, enText);
+      // Use new updateKeyword API
+      const newCategoryName = categoryName !== originalCategory ? categoryName : undefined;
+      await updateKeyword(originalCategory, originalEn, jaText, enText, newCategoryName);
 
       // Close modal
       onClose();
@@ -80,7 +85,7 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
     } finally {
       setIsSaving(false);
     }
-  }, [keyword, categoryName, jaText, enText, updateKeyword, onClose]);
+  }, [keyword, categoryName, jaText, enText, originalEn, originalCategory, updateKeyword, onClose]);
 
   /**
    * Handle cancel

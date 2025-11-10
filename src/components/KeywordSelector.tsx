@@ -9,13 +9,18 @@ import React, { useState, useCallback } from 'react';
 import { usePromptContext } from '../contexts/PromptContext';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
 import EditKeywordModal from './EditKeywordModal';
-import type { CustomKeyword } from '../types';
 import styles from './KeywordSelector.module.css';
 
 const KeywordSelector: React.FC = () => {
   const { appendKeyword } = usePromptContext();
-  const { allCategories, customKeywords, deleteKeyword, isLoading } = useCustomKeywords();
-  const [editingKeyword, setEditingKeyword] = useState<CustomKeyword | null>(null);
+  const {
+    allCategories,
+    deleteKeyword,
+    moveCategoryUp,
+    moveCategoryDown,
+    isLoading
+  } = useCustomKeywords();
+  const [editingKeyword, setEditingKeyword] = useState<{ categoryName: string; ja: string; en: string } | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   const handleKeywordClick = (keyword: string): void => {
@@ -23,27 +28,20 @@ const KeywordSelector: React.FC = () => {
   };
 
   /**
-   * Check if a keyword is custom (editable/deletable)
-   */
-  const isCustomKeyword = useCallback((en: string): CustomKeyword | undefined => {
-    return customKeywords.find((kw) => kw.en === en);
-  }, [customKeywords]);
-
-  /**
    * Handle edit button click
    */
-  const handleEdit = useCallback((keyword: CustomKeyword): void => {
-    setEditingKeyword(keyword);
+  const handleEdit = useCallback((categoryName: string, keyword: { ja: string; en: string }): void => {
+    setEditingKeyword({ categoryName, ja: keyword.ja, en: keyword.en });
     setIsEditModalOpen(true);
   }, []);
 
   /**
    * Handle delete button click
    */
-  const handleDelete = useCallback(async (keyword: CustomKeyword): Promise<void> => {
+  const handleDelete = useCallback(async (categoryName: string, keyword: { ja: string; en: string }): Promise<void> => {
     if (window.confirm(`「${keyword.ja}」を削除しますか？`)) {
       try {
-        await deleteKeyword(keyword.id);
+        await deleteKeyword(categoryName, keyword.en);
       } catch (err) {
         console.error('Failed to delete keyword:', err);
       }
@@ -74,52 +72,69 @@ const KeywordSelector: React.FC = () => {
           <h2 className={styles.sectionTitle}>
             ポジティブキーワード
           </h2>
-          {allCategories.map((category) => (
+          {allCategories.map((category, categoryIndex) => (
             <div key={category.categoryName} className={styles.category}>
-              <h3 className={styles.categoryTitle}>
-                {category.categoryName}
-              </h3>
+              <div className={styles.categoryHeader}>
+                <h3 className={styles.categoryTitle}>
+                  {category.categoryName}
+                </h3>
+                <div className={styles.categoryControls}>
+                  <button
+                    onClick={() => void moveCategoryUp(category.categoryName)}
+                    className={styles.categoryMoveButton}
+                    disabled={categoryIndex === 0}
+                    title="カテゴリーを上に移動"
+                    aria-label={`${category.categoryName}を上に移動`}
+                  >
+                    ⬆️
+                  </button>
+                  <button
+                    onClick={() => void moveCategoryDown(category.categoryName)}
+                    className={styles.categoryMoveButton}
+                    disabled={categoryIndex === allCategories.length - 1}
+                    title="カテゴリーを下に移動"
+                    aria-label={`${category.categoryName}を下に移動`}
+                  >
+                    ⬇️
+                  </button>
+                </div>
+              </div>
               <div className={styles.keywordList}>
-                {category.keywords.map((keyword) => {
-                  const customKw = isCustomKeyword(keyword.en);
-                  return (
-                    <div key={keyword.en} className={styles.keywordWrapper}>
+                {category.keywords.map((keyword) => (
+                  <div key={keyword.en} className={styles.keywordWrapper}>
+                    <button
+                      onClick={() => handleKeywordClick(keyword.en)}
+                      className={styles.keywordButton}
+                      title={keyword.en}
+                    >
+                      {keyword.ja}
+                    </button>
+                    <div className={styles.keywordActions}>
                       <button
-                        onClick={() => handleKeywordClick(keyword.en)}
-                        className={styles.keywordButton}
-                        title={keyword.en}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(category.categoryName, keyword);
+                        }}
+                        className={styles.editButton}
+                        title="編集"
+                        aria-label={`${keyword.ja}を編集`}
                       >
-                        {keyword.ja}
+                        ✏️
                       </button>
-                      {customKw && (
-                        <div className={styles.keywordActions}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(customKw);
-                            }}
-                            className={styles.editButton}
-                            title="編集"
-                            aria-label={`${keyword.ja}を編集`}
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              void handleDelete(customKw);
-                            }}
-                            className={styles.deleteButton}
-                            title="削除"
-                            aria-label={`${keyword.ja}を削除`}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleDelete(category.categoryName, keyword);
+                        }}
+                        className={styles.deleteButton}
+                        title="削除"
+                        aria-label={`${keyword.ja}を削除`}
+                      >
+                        🗑️
+                      </button>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           ))}

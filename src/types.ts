@@ -166,6 +166,27 @@ export interface CustomKeyword {
   readonly createdAt: number;     // Timestamp when created
 }
 
+/**
+ * Override for a default keyword
+ * When user edits a default keyword, store the override here
+ */
+export interface KeywordOverride {
+  readonly categoryName: string;  // Original category name
+  readonly originalEn: string;    // Original English keyword
+  readonly ja: string;            // New Japanese display text
+  readonly en: string;            // New English keyword
+  readonly newCategoryName?: string; // New category if moved
+}
+
+/**
+ * Hidden keyword identifier
+ * When user deletes a default keyword, add it here
+ */
+export interface HiddenKeyword {
+  readonly categoryName: string;  // Category name
+  readonly en: string;            // English keyword to hide
+}
+
 // ===== Category Color Types =====
 
 /**
@@ -186,7 +207,10 @@ export const StorageKeys = {
   AUTO_SAVE: 'autoSave',
   HISTORY: 'history',
   CUSTOM_KEYWORDS: 'customKeywords',
-  CATEGORY_COLORS: 'categoryColors'
+  CATEGORY_COLORS: 'categoryColors',
+  KEYWORD_OVERRIDES: 'keywordOverrides',
+  HIDDEN_KEYWORDS: 'hiddenKeywords',
+  CATEGORY_ORDER: 'categoryOrder'
 } as const;
 
 export type StorageKey = typeof StorageKeys[keyof typeof StorageKeys];
@@ -199,6 +223,9 @@ export interface StorageData {
   [StorageKeys.HISTORY]: ReadonlyArray<HistoryEntry>;
   [StorageKeys.CUSTOM_KEYWORDS]: ReadonlyArray<CustomKeyword>;
   [StorageKeys.CATEGORY_COLORS]: ReadonlyArray<CategoryColorConfig>;
+  [StorageKeys.KEYWORD_OVERRIDES]: ReadonlyArray<KeywordOverride>;
+  [StorageKeys.HIDDEN_KEYWORDS]: ReadonlyArray<HiddenKeyword>;
+  [StorageKeys.CATEGORY_ORDER]: ReadonlyArray<string>; // Array of category names in order
 }
 
 /**
