@@ -12,7 +12,7 @@
 /**
  * Log level types
  */
-type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
+type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 /**
  * Logger configuration
@@ -34,15 +34,6 @@ class Logger {
   }
 
   /**
-   * Log general information (development only)
-   */
-  log(message: string, ...args: unknown[]): void {
-    if (this.shouldLog('log')) {
-      console.log(`${this.config.prefix}[LOG] ${message}`, ...args);
-    }
-  }
-
-  /**
    * Log informational messages (development only)
    */
   info(message: string, ...args: unknown[]): void {
@@ -61,16 +52,11 @@ class Logger {
   }
 
   /**
-   * Log errors (always logged, sent to monitoring in production)
+   * Log errors (always logged)
    */
   error(message: string, error?: unknown, ...args: unknown[]): void {
     if (this.shouldLog('error')) {
       console.error(`${this.config.prefix}[ERROR] ${message}`, error, ...args);
-    }
-
-    // In production, send to monitoring service (future enhancement)
-    if (!this.config.enabled) {
-      this.reportToMonitoring(message, error, args);
     }
   }
 
@@ -89,19 +75,6 @@ class Logger {
   private shouldLog(level: LogLevel): boolean {
     return this.config.enabled && this.config.levels.includes(level);
   }
-
-  /**
-   * Report error to monitoring service (placeholder for future implementation)
-   */
-  private reportToMonitoring(_message: string, _error: unknown, _args: unknown[]): void {
-    // Future enhancement: Send to Sentry, LogRocket, or similar service
-    // For now, this is a placeholder to demonstrate the architecture
-
-    // Example (future implementation):
-    // Sentry.captureException(_error, {
-    //   extra: { message: _message, args: _args }
-    // });
-  }
 }
 
 /**
@@ -111,7 +84,7 @@ class Logger {
  */
 export const logger = new Logger({
   enabled: import.meta.env.DEV,
-  levels: ['log', 'info', 'warn', 'error', 'debug'],
+  levels: ['info', 'warn', 'error', 'debug'],
   prefix: '[App] '
 });
 
@@ -131,7 +104,7 @@ export const logger = new Logger({
 export const createScopedLogger = (scope: string): Logger => {
   return new Logger({
     enabled: import.meta.env.DEV,
-    levels: ['log', 'info', 'warn', 'error', 'debug'],
+    levels: ['info', 'warn', 'error', 'debug'],
     prefix: `[App] [${scope}]`
   });
 };

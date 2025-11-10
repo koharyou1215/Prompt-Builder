@@ -16,7 +16,6 @@ import type {
   CategoryColorConfig
 } from '../types';
 import { StorageKeys } from '../types';
-import { MAX_HISTORY_ENTRIES } from '../constants';
 import { createScopedLogger } from '../utils/logger';
 
 /**
@@ -217,79 +216,6 @@ export const clearAllStorage = async (): Promise<StorageServiceResponse<void>> =
   }
 };
 
-/**
- * Get storage usage in bytes
- *
- * @returns Bytes in use
- */
-export const getStorageUsage = async (): Promise<number> => {
-  try {
-    if (isChromeExtension()) {
-      const bytesInUse = await chrome.storage.local.getBytesInUse();
-      return bytesInUse;
-    } else {
-      // Estimate localStorage usage
-      let totalSize = 0;
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-          totalSize += localStorage[key].length + key.length;
-        }
-      }
-      // Convert characters to bytes (UTF-16 = 2 bytes per character)
-      return totalSize * 2;
-    }
-  } catch (error) {
-    logger.error('Failed to get storage usage', error);
-    return 0;
-  }
-};
-
-/**
- * Get storage quota (maximum capacity)
- *
- * @returns Maximum storage capacity in bytes
- */
-export const getStorageQuota = (): number => {
-  if (isChromeExtension()) {
-    // Chrome Storage Local quota is 10MB
-    return chrome.storage.local.QUOTA_BYTES;
-  } else {
-    // localStorage typical quota is 5-10MB, use 5MB as conservative estimate
-    return 5 * 1024 * 1024; // 5MB
-  }
-};
-
-/**
- * Get storage usage ratio (0-1 range)
- *
- * @returns Usage ratio (0.0 = 0%, 1.0 = 100%)
- */
-export const getStorageUsageRatio = async (): Promise<number> => {
-  const usage = await getStorageUsage();
-  const quota = getStorageQuota();
-
-  return usage / quota;
-};
-
-/**
- * Clean up old history entries (keep last 50)
- *
- * @returns Response indicating success or error
- */
-export const cleanupOldHistory = async (): Promise<StorageServiceResponse<void>> => {
-  const response = await loadFromStorage<ReadonlyArray<StorageData['history'][number]>>(
-    'history' as StorageKey
-  );
-
-  if (!response.success || !response.data) {
-    return { success: true }; // Nothing to clean
-  }
-
-  // Keep only the last MAX_HISTORY_ENTRIES entries
-  const trimmedHistory = response.data.slice(0, MAX_HISTORY_ENTRIES);
-
-  return await saveToStorage('history' as StorageKey, trimmedHistory);
-};
 
 // ===== Category Color Storage =====
 

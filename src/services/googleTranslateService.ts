@@ -106,14 +106,15 @@ export const translateTextWithGoogle = async (
   }
 
   // Mask special prompt syntax before translation
-  const { maskedText, mappings } = maskPromptSyntax(text);
+  const { maskedText, counters } = maskPromptSyntax(text);
 
   // Log masking details in development mode
-  if (import.meta.env.DEV && mappings.length > 0) {
+  const totalSyntaxCount = counters.lparen + counters.lbrace + counters.lbracket + counters.weight;
+  if (import.meta.env.DEV && totalSyntaxCount > 0) {
     console.log('[Google Translate] Masked special syntax', {
       originalLength: text.length,
       maskedLength: maskedText.length,
-      syntaxCount: mappings.length
+      syntaxCount: totalSyntaxCount
     });
   }
 
@@ -137,7 +138,7 @@ export const translateTextWithGoogle = async (
       const translatedText = await translateViaBackground(maskedText, from, to);
 
       // Restore original syntax
-      const restoredText = unmaskPromptSyntax(translatedText, mappings);
+      const restoredText = unmaskPromptSyntax(translatedText, counters);
 
       // Log success in development mode
       if (import.meta.env.DEV) {
@@ -184,16 +185,3 @@ export const translateTextWithGoogle = async (
   );
 };
 
-/**
- * Check if Google Translate is accessible
- *
- * @returns true if API is accessible
- */
-export const checkGoogleTranslateHealth = async (): Promise<boolean> => {
-  try {
-    await translateTextWithGoogle('test', 'en-to-ja');
-    return true;
-  } catch {
-    return false;
-  }
-};

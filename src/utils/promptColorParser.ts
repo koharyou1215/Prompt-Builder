@@ -103,19 +103,3 @@ const findCategoryForKeyword = (
   return undefined;
 };
 
-/**
- * Extract unique categories from colored segments
- * Useful for displaying category legends
- *
- * @param segments - Colored text segments
- * @returns Array of unique category names
- */
-export const extractUniqueCategories = (
-  segments: ReadonlyArray<ColoredTextSegment>
-): ReadonlyArray<string> => {
-  const categories = segments
-    .map(s => s.category)
-    .filter((c): c is string => c !== undefined);
-
-  return Array.from(new Set(categories));
-};

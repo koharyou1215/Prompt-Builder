@@ -265,14 +265,15 @@ export const translateTextWithGemini = async (
   }
 
   // Mask special prompt syntax before translation
-  const { maskedText, mappings } = maskPromptSyntax(text);
+  const { maskedText, counters } = maskPromptSyntax(text);
 
   // Log masking details in development mode
-  if (mappings.length > 0) {
+  const totalSyntaxCount = counters.lparen + counters.lbrace + counters.lbracket + counters.weight;
+  if (totalSyntaxCount > 0) {
     logger.debug('Masked special syntax', {
       originalLength: text.length,
       maskedLength: maskedText.length,
-      syntaxCount: mappings.length
+      syntaxCount: totalSyntaxCount
     });
   }
 
@@ -406,10 +407,10 @@ export const translateTextWithGemini = async (
       const translatedText = parseGeminiResponse(data);
 
       // Restore original syntax
-      const restoredText = unmaskPromptSyntax(translatedText, mappings);
+      const restoredText = unmaskPromptSyntax(translatedText, counters);
 
       // Log restoration in development mode
-      if (mappings.length > 0) {
+      if (totalSyntaxCount > 0) {
         logger.debug('Restored special syntax', {
           translatedLength: translatedText.length,
           restoredLength: restoredText.length
@@ -485,22 +486,3 @@ export const translateTextWithGemini = async (
   );
 };
 
-// ===== Health Check =====
-
-/**
- * Check if Gemini API is accessible
- *
- * @returns true if API is accessible
- */
-export const checkApiHealth = async (): Promise<boolean> => {
-  if (!GEMINI_API_KEY) {
-    return false;
-  }
-
-  try {
-    await translateText('test', 'en-to-ja');
-    return true;
-  } catch {
-    return false;
-  }
-};
