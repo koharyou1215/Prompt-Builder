@@ -107,11 +107,7 @@ const CategoryManagementModal: React.FC<CategoryManagementModalProps> = ({ isOpe
   /**
    * Handle delete keyword
    */
-  const handleDeleteKeyword = useCallback(async (keywordId: string, keywordJa: string): Promise<void> => {
-    if (!window.confirm(`キーワード「${keywordJa}」を削除しますか？`)) {
-      return;
-    }
-
+  const handleDeleteKeyword = useCallback(async (keywordId: string, _keywordJa: string): Promise<void> => {
     setError(null);
 
     try {
