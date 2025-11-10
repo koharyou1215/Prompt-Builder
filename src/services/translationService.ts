@@ -80,7 +80,8 @@ const getApiUrl = (modelId: ApprovedModel = GEMINI_MODEL): string => {
 const TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
   'en-to-ja': `以下の英語のAI画像生成プロンプトを、日本語に翻訳してください。
 意味とニュアンスを正確に保持し、タグ形式（カンマ区切り）を維持してください。
-括弧 () や記号は必ず保持してください。
+【重要】括弧内のテキストも翻訳してください。ただし、括弧の構造と重み値（:1.3など）は必ず保持してください。
+例: (beautiful eyes:1.2) → (美しい目:1.2)
 翻訳結果のみを出力し、説明は不要です。
 
 翻訳対象: `,
@@ -90,13 +91,15 @@ const TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
 1. タグ形式（カンマ区切り）で出力
 2. 複数語は アンダースコアで結合（例: long_hair, blue_eyes）
 3. 品質タグを先頭に配置（masterpiece, best quality等）
-4. 括弧 () や記号は必ず保持してください（強調を表します）
+4. 【重要】括弧内のテキストも翻訳してください。ただし、括弧の構造と重み値（:1.3など）は必ず保持してください。
+   例: (美しい目:1.2) → (beautiful_eyes:1.2)
 5. 日本語は一切使用禁止、全て英語で出力
 
 翻訳結果のみを出力し、説明は不要です。
 
 翻訳対象: `
 };
+
 
 // ===== Helper Functions =====
 

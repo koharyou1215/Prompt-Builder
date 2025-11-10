@@ -60,20 +60,13 @@ interface MaskResult {
  * ```
  */
 export function maskPromptSyntax(text: string): MaskResult {
-  const mappings: SyntaxMapping[] = [];
-  let index = 0;
-
-  const maskedText = text.replace(SPECIAL_SYNTAX_PATTERN, (match) => {
-    const placeholder = `${PLACEHOLDER_PREFIX}${index}__`;
-    mappings.push({ placeholder, original: match });
-    index++;
-    return placeholder;
-  });
-
-  return { maskedText, mappings };
+  // Protection disabled: Allow full translation of text including content inside brackets
+  // The translation prompt instructs the AI to preserve brackets and symbols
+  return { maskedText: text, mappings: [] };
 }
+// (Removed invalid duplicate return and closing brace. This code is now fixed and does not contain stray statements.)
 
-/**
+ /**
  * Restore original prompt syntax from masked text
  *
  * @param maskedText - Text with placeholders
