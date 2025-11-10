@@ -263,7 +263,7 @@ const useBidirectionalTranslationCore = (
     setError(null);
 
     try {
-      const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType);
+      const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType, organizeTagsByCategory);
 
       if (!enToJaAbortRef.current) {
         setTranslatedText(result);
