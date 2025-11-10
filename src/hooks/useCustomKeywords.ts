@@ -27,6 +27,9 @@ interface UseCustomKeywordsReturn {
   /** Add new custom keyword */
   addKeyword: (categoryName: string, ja: string, en: string) => Promise<void>;
 
+  /** Update existing custom keyword */
+  updateKeyword: (id: string, categoryName: string, ja: string, en: string) => Promise<void>;
+
   /** Delete custom keyword */
   deleteKeyword: (id: string) => Promise<void>;
 
@@ -168,6 +171,54 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
   }, [customKeywords]);
 
   /**
+   * Update existing custom keyword
+   */
+  const updateKeyword = useCallback(async (
+    id: string,
+    categoryName: string,
+    ja: string,
+    en: string
+  ): Promise<void> => {
+    try {
+      setError(null);
+
+      // Validate inputs
+      if (!categoryName.trim() || !ja.trim() || !en.trim()) {
+        throw new Error('カテゴリー、日本語、英語のすべてを入力してください');
+      }
+
+      // Find and update keyword
+      const updatedKeywords = customKeywords.map((kw) => {
+        if (kw.id === id) {
+          return {
+            ...kw,
+            categoryName,
+            ja: ja.trim(),
+            en: en.trim()
+          };
+        }
+        return kw;
+      });
+
+      setCustomKeywords(updatedKeywords);
+
+      // Save to Chrome Storage
+      await chrome.storage.local.set({
+        [StorageKeys.CUSTOM_KEYWORDS]: updatedKeywords
+      });
+
+      console.log('Custom keyword updated:', id);
+    } catch (err) {
+      const errorMessage = err instanceof Error
+        ? err.message
+        : 'キーワードの更新に失敗しました';
+      setError(errorMessage);
+      console.error('Failed to update keyword:', err);
+      throw err;
+    }
+  }, [customKeywords]);
+
+  /**
    * Delete custom keyword
    */
   const deleteKeyword = useCallback(async (id: string): Promise<void> => {
@@ -197,6 +248,7 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
     allCategories,
     customKeywords,
     addKeyword,
+    updateKeyword,
     deleteKeyword,
     isLoading,
     error
