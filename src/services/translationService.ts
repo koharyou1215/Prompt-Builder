@@ -173,6 +173,15 @@ const createPrompt = (
   const template = organizeByCategory
     ? ORGANIZED_TRANSLATION_PROMPTS[direction]
     : TRANSLATION_PROMPTS[direction];
+
+  // Debug logging
+  console.log('[TranslationService] Creating prompt:', {
+    direction,
+    organizeByCategory,
+    usingOrganizedPrompt: organizeByCategory,
+    promptPreview: template.substring(0, 100) + '...'
+  });
+
   return template + text;
 };
 

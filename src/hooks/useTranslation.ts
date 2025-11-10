@@ -174,6 +174,13 @@ const useBidirectionalTranslationCore = (
         setError(null);
 
         try {
+          // Debug logging
+          console.log('[useTranslation] Auto-translate EN→JA:', {
+            organizeTagsByCategory,
+            translatorType,
+            selectedModel
+          });
+
           // Call translation service with selected model and translator type
           const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType, organizeTagsByCategory);
 
