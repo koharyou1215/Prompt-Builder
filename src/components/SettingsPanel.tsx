@@ -13,7 +13,7 @@ import { CategoryColorSettings } from './CategoryColorSettings';
 import './SettingsPanel.css';
 
 const SettingsPanel: React.FC = () => {
-  const { settings, setAutoTranslate, setSelectedModel, setTranslatorType } = useSettings();
+  const { settings, setAutoTranslate, setSelectedModel, setTranslatorType, setOrganizeTagsByCategory } = useSettings();
   const { setPositivePrompt, setNegativePrompt } = usePromptContext();
   const { translatedText: negTranslated, handleJapaneseChange, manualTranslate, isTranslating } = useNegativeTranslation();
 
@@ -42,6 +42,24 @@ const SettingsPanel: React.FC = () => {
         </label>
         <p className="help-text">
           オフにすると、手動ボタンで翻訳を実行します
+        </p>
+      </section>
+
+      {/* Tag organization toggle */}
+      <section className="settings-section">
+        <h3>タグ整理</h3>
+        <label className="toggle-label">
+          <input
+            type="checkbox"
+            checked={settings.organizeTagsByCategory}
+            onChange={(e) => setOrganizeTagsByCategory(e.target.checked)}
+          />
+          <span>カテゴリ別にタグを整理してコピー</span>
+        </label>
+        <p className="help-text">
+          有効にすると、コピー時にタグがカテゴリごとに改行で区切られます
+          <br />
+          （品質、キャラクター、表情、服装、ポーズ、シチュエーション、構図・アングル・背景の順）
         </p>
       </section>
 

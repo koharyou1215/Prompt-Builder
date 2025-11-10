@@ -11,11 +11,12 @@
  * translation nuances cause continuous back-and-forth translation.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePromptContext } from '../contexts/PromptContext';
 import { CategoryModeView } from './CategoryModeView';
+import { organizeAndFormatTags } from '../utils/tagOrganizer';
 import styles from './TranslationArea.module.css';
 
 /**
@@ -32,9 +33,9 @@ const TranslationArea: React.FC = () => {
     message: ''
   });
 
-  // Get settings for auto-translate status
+  // Get settings for auto-translate status and tag organization
   const { settings } = useSettings();
-  const { autoTranslate } = settings;
+  const { autoTranslate, organizeTagsByCategory } = settings;
 
   // Get prompt mode for category view and manual mode switching
   const { mode, switchMode, restoreOriginal, hasOriginal } = usePromptContext();
@@ -48,6 +49,17 @@ const TranslationArea: React.FC = () => {
     isTranslating: posTranslating,
     error: posError
   } = useTranslation();
+
+  // Organize translated text by category for copying (if enabled)
+  // タグ整理が有効な場合、コピー用にカテゴリ別に整理する
+  const organizedTextForCopy = useMemo(() => {
+    if (!posTranslated || !organizeTagsByCategory) {
+      return posTranslated;
+    }
+
+    // Organize tags by category with line breaks
+    return organizeAndFormatTags(posTranslated, 'ja', false);
+  }, [posTranslated, organizeTagsByCategory]);
 
   const handlePositiveChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     handlePosChange(event.target.value);
@@ -86,11 +98,11 @@ const TranslationArea: React.FC = () => {
   }, []);
 
   /**
-   * Copy positive Japanese translation
+   * Copy positive Japanese translation (organized if enabled)
    */
   const handleCopyPositive = useCallback((): void => {
-    void copyToClipboard(posTranslated, 'positive');
-  }, [posTranslated, copyToClipboard]);
+    void copyToClipboard(organizedTextForCopy, 'positive');
+  }, [organizedTextForCopy, copyToClipboard]);
 
   /**
    * Restore original English prompt (before reverse translation)
@@ -173,7 +185,7 @@ const TranslationArea: React.FC = () => {
                 onClick={handleCopyPositive}
                 disabled={!posTranslated.trim()}
                 className={styles.iconButton}
-                title="日本語翻訳をコピー"
+                title={organizeTagsByCategory ? "日本語翻訳をコピー（カテゴリ別整理）" : "日本語翻訳をコピー"}
                 aria-label="コピー"
               >
                 📋
