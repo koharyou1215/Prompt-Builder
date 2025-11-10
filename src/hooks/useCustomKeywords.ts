@@ -167,17 +167,29 @@ export const useCustomKeywords = (): UseCustomKeywordsReturn => {
         return acc;
       }, {} as Record<string, Keyword[]>);
 
+      // Merge custom keywords into existing categories
       categories = categories.map((category) => {
         const customKeywordsForCategory = customByCategory[category.categoryName] || [];
         if (customKeywordsForCategory.length === 0) {
           return category;
         }
 
+        // Remove from customByCategory after merging
+        delete customByCategory[category.categoryName];
+
         return {
           categoryName: category.categoryName,
           keywords: [...category.keywords, ...customKeywordsForCategory]
         };
       });
+
+      // Add new custom categories (not in default categories)
+      for (const [categoryName, keywords] of Object.entries(customByCategory)) {
+        categories.push({
+          categoryName,
+          keywords
+        });
+      }
     }
 
     // Apply category ordering if set

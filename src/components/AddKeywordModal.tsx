@@ -11,7 +11,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
-import { keywordCategories, negativeKeywordCategories } from '../data/keywords';
+import { negativeKeywordCategories } from '../data/keywords';
 
 interface AddKeywordModalProps {
   readonly isOpen: boolean;
@@ -19,7 +19,7 @@ interface AddKeywordModalProps {
 }
 
 const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) => {
-  const { addKeyword } = useCustomKeywords();
+  const { addKeyword, allCategories } = useCustomKeywords();
 
   const [categoryName, setCategoryName] = useState<string>('');
   const [jaText, setJaText] = useState<string>('');
@@ -27,9 +27,9 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get all available category names
+  // Get all available category names from allCategories (includes custom categories)
   const allCategoryNames = [
-    ...keywordCategories.map((c) => c.categoryName),
+    ...allCategories.map((c) => c.categoryName),
     ...negativeKeywordCategories.map((c) => c.categoryName)
   ];
 
@@ -166,7 +166,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
             </div>
           )}
 
-          {/* Category Selection */}
+          {/* Category Selection with ability to create new */}
           <div style={{ marginBottom: '16px' }}>
             <label
               htmlFor="keyword-category"
@@ -180,10 +180,12 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
             >
               カテゴリー
             </label>
-            <select
+            <input
               id="keyword-category"
+              list="category-list"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="カテゴリーを選択または入力"
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -192,14 +194,15 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
                 borderRadius: '6px',
                 background: '#fff'
               }}
-            >
-              <option value="">カテゴリーを選択</option>
+            />
+            <datalist id="category-list">
               {allCategoryNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
+                <option key={name} value={name} />
               ))}
-            </select>
+            </datalist>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+              既存のカテゴリーを選択するか、新しいカテゴリー名を入力してください
+            </div>
           </div>
 
           {/* Japanese Input */}

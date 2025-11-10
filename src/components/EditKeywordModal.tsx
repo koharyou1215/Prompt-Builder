@@ -11,7 +11,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
-import { keywordCategories, negativeKeywordCategories } from '../data/keywords';
+import { negativeKeywordCategories } from '../data/keywords';
 
 interface EditKeywordModalProps {
   readonly isOpen: boolean;
@@ -20,7 +20,7 @@ interface EditKeywordModalProps {
 }
 
 const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, onClose }) => {
-  const { updateKeyword } = useCustomKeywords();
+  const { updateKeyword, allCategories } = useCustomKeywords();
 
   const [categoryName, setCategoryName] = useState<string>('');
   const [jaText, setJaText] = useState<string>('');
@@ -30,9 +30,9 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get all available category names
+  // Get all available category names from allCategories (includes custom categories)
   const allCategoryNames = [
-    ...keywordCategories.map((c) => c.categoryName),
+    ...allCategories.map((c) => c.categoryName),
     ...negativeKeywordCategories.map((c) => c.categoryName)
   ];
 
@@ -181,10 +181,10 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
             </div>
           )}
 
-          {/* Category Selection */}
+          {/* Category Selection with ability to create new */}
           <div style={{ marginBottom: '16px' }}>
             <label
-              htmlFor="keyword-category"
+              htmlFor="edit-keyword-category"
               style={{
                 display: 'block',
                 marginBottom: '6px',
@@ -195,10 +195,12 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
             >
               カテゴリー
             </label>
-            <select
-              id="keyword-category"
+            <input
+              id="edit-keyword-category"
+              list="edit-category-list"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="カテゴリーを選択または入力"
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -207,14 +209,15 @@ const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, on
                 borderRadius: '6px',
                 background: '#fff'
               }}
-            >
-              <option value="">カテゴリーを選択</option>
+            />
+            <datalist id="edit-category-list">
               {allCategoryNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
+                <option key={name} value={name} />
               ))}
-            </select>
+            </datalist>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+              既存のカテゴリーを選択するか、新しいカテゴリー名を入力してください
+            </div>
           </div>
 
           {/* Japanese Input */}
