@@ -26,6 +26,7 @@ export interface SettingsState {
   autoTranslate: boolean;
   selectedModel: ApprovedModel;
   translatorType: TranslatorType;
+  organizeTagsByCategory: boolean; // Organize translated tags by category with line breaks
 }
 
 export interface SettingsContextValue {
@@ -33,6 +34,7 @@ export interface SettingsContextValue {
   setAutoTranslate: (enabled: boolean) => void;
   setSelectedModel: (model: ApprovedModel) => void;
   setTranslatorType: (type: TranslatorType) => void;
+  setOrganizeTagsByCategory: (enabled: boolean) => void;
   isLoading: boolean;
 }
 
@@ -43,7 +45,8 @@ const STORAGE_KEY = 'app-settings';
 const DEFAULT_SETTINGS: SettingsState = {
   autoTranslate: true,
   selectedModel: 'gemini-2.5-pro',
-  translatorType: 'gemini'
+  translatorType: 'gemini',
+  organizeTagsByCategory: true // Enable tag organization by default
 };
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -74,7 +77,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setSettings({
             autoTranslate: saved.autoTranslate ?? DEFAULT_SETTINGS.autoTranslate,
             selectedModel: isValidModel ? saved.selectedModel : DEFAULT_SETTINGS.selectedModel,
-            translatorType: isValidTranslatorType ? saved.translatorType : DEFAULT_SETTINGS.translatorType
+            translatorType: isValidTranslatorType ? saved.translatorType : DEFAULT_SETTINGS.translatorType,
+            organizeTagsByCategory: saved.organizeTagsByCategory ?? DEFAULT_SETTINGS.organizeTagsByCategory
           });
         }
       } catch (error: unknown) {
@@ -130,11 +134,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setSettings(prev => ({ ...prev, translatorType: type }));
   }, []);
 
+  const setOrganizeTagsByCategory = useCallback((enabled: boolean): void => {
+    setSettings(prev => ({ ...prev, organizeTagsByCategory: enabled }));
+  }, []);
+
   const value: SettingsContextValue = {
     settings,
     setAutoTranslate,
     setSelectedModel,
     setTranslatorType,
+    setOrganizeTagsByCategory,
     isLoading
   };
 
