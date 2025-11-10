@@ -1,5 +1,5 @@
 /**
- * One-Way Auto-Translation Custom Hook (Infinite Loop Prevention)
+ * One-Way Auto-Translation Custom Hook (Refactored)
  *
  * Features:
  * - English → Japanese auto-translation with debounce (when auto-translate is ON)
@@ -14,16 +14,20 @@
  * This prevents the loop: EN → JA → EN → JA → ...
  *
  * For Japanese → English translation, users must click the "日→英" button.
+ *
+ * Refactored: Extracted helper hooks for better code organization.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { usePromptContext } from '../contexts/PromptContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { translateText } from '../services/translationService';
 import type { PromptTarget } from '../types';
-import { TranslationError } from '../types';
 import { TRANSLATION_DEBOUNCE_MS } from '../constants';
 import { createScopedLogger } from '../utils/logger';
+import { useTranslationState } from './translation/useTranslationState';
+import { useAutoTranslation } from './translation/useAutoTranslation';
+import { createAbortManager, extractErrorMessage } from './translation/translationHelpers';
 
 const logger = createScopedLogger('useTranslation');
 
@@ -62,7 +66,7 @@ export interface UseTranslationOptions {
 }
 
 /**
- * Core one-way auto-translation implementation
+ * Core one-way auto-translation implementation (Refactored)
  *
  * Internal hook that handles translation logic for any prompt target.
  * This eliminates code duplication between positive and negative prompts.
@@ -84,144 +88,46 @@ const useBidirectionalTranslationCore = (
     enabled = true
   } = options;
 
-  // Get source (English) and update function from Context
-  const {
-    promptState,
-    updatePrompt,
-    setPositiveJa,
-    setNegativeJa,
-    onTranslateSuccess,
-    setOriginalPrompt,
-    hasOriginal
-  } = usePromptContext();
-  const sourcePrompt = promptState[target];
-
-  // Get Japanese setter based on target
-  const setJaPrompt = target === 'positive' ? setPositiveJa : setNegativeJa;
-
-  // Get stored Japanese translation from Context
-  const storedJaPrompt = target === 'positive' ? promptState.positiveJa : promptState.negativeJa;
-
   // Get settings (auto-translate, model selection, translator type)
   const { settings } = useSettings();
   const { autoTranslate, selectedModel, translatorType } = settings;
 
-  // Translation result (Japanese) state - initialize from Context
-  const [translatedText, setTranslatedText] = useState<string>(storedJaPrompt || '');
+  // Get context functions
+  const { updatePrompt, setOriginalPrompt, hasOriginal } = usePromptContext();
 
-  // Translation in progress flag
-  const [isTranslating, setIsTranslating] = useState<boolean>(false);
+  // Get translation state
+  const state = useTranslationState(target);
+  const {
+    translatedText,
+    setTranslatedText,
+    isTranslating,
+    setIsTranslating,
+    error,
+    setError,
+    setJaPrompt,
+    sourcePrompt
+  } = state;
 
-  // Error state
-  const [error, setError] = useState<string | null>(null);
+  // Auto-translation with debounce
+  const autoTranslation = useAutoTranslation({
+    sourcePrompt,
+    enabled,
+    autoTranslate,
+    debounceMs,
+    target,
+    onTranslate: (result: string) => {
+      setTranslatedText(result);
+      setJaPrompt(result);
+    },
+    onError: setError,
+    setIsTranslating
+  });
 
-  // Sync translatedText with Context when it changes
-  useEffect(() => {
-    if (storedJaPrompt !== undefined && storedJaPrompt !== translatedText) {
-      setTranslatedText(storedJaPrompt);
-    }
-  }, [storedJaPrompt]);
-
-  // Debounce timer references
-  const enToJaTimerRef = useRef<number | null>(null);
-  const jaToEnTimerRef = useRef<number | null>(null);
-
-  // Abort flags for canceling in-progress requests
-  const enToJaAbortRef = useRef<boolean>(false);
-  const jaToEnAbortRef = useRef<boolean>(false);
-
-  // Flag to skip next auto-translation after manual reverse translation
-  const skipNextAutoTranslateRef = useRef<boolean>(false);
-
-  /**
-   * Feature A: English → Japanese translation
-   * Executes translation after debounce when sourcePrompt changes
-   */
-  useEffect(() => {
-    // Do nothing if translation is disabled or auto-translate is off
-    if (!enabled || !autoTranslate) {
-      return;
-    }
-
-    // Skip this auto-translation if it was triggered by manual reverse translation
-    if (skipNextAutoTranslateRef.current) {
-      skipNextAutoTranslateRef.current = false;
-      return;
-    }
-
-    // Clear translation result if source is empty
-    if (!sourcePrompt.trim()) {
-      setTranslatedText('');
-      setError(null);
-      return;
-    }
-
-    // Clear existing timer
-    if (enToJaTimerRef.current) {
-      clearTimeout(enToJaTimerRef.current);
-    }
-
-    // Cancel in-progress translation
-    enToJaAbortRef.current = true;
-
-    // Debounce processing
-    enToJaTimerRef.current = setTimeout(() => {
-      const translateEnToJa = async (): Promise<void> => {
-        // Reset cancel flag for new translation request
-        enToJaAbortRef.current = false;
-
-        setIsTranslating(true);
-        setError(null);
-
-        try {
-          // Call translation service with selected model and translator type
-          const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType);
-
-          // Check if not canceled during translation
-          if (!enToJaAbortRef.current) {
-            setTranslatedText(result);
-            // Save to Context for persistence
-            setJaPrompt(result);
-
-            // Trigger category mode after successful auto-translation
-            onTranslateSuccess();
-          }
-        } catch (err: unknown) {
-          // Set error only if not canceled
-          if (!enToJaAbortRef.current) {
-            let errorMessage = '翻訳中にエラーが発生しました';
-
-            if (err instanceof TranslationError) {
-              errorMessage = err.message;
-            } else if (err instanceof Error) {
-              errorMessage = err.message;
-            }
-
-            setError(errorMessage);
-            console.error(`Translation error (${target} en-to-ja):`, err);
-          }
-        } finally {
-          // Clear loading state only if not canceled
-          if (!enToJaAbortRef.current) {
-            setIsTranslating(false);
-          }
-        }
-      };
-
-      void translateEnToJa();
-    }, debounceMs);
-
-    // Cleanup function
-    return () => {
-      if (enToJaTimerRef.current) {
-        clearTimeout(enToJaTimerRef.current);
-      }
-      enToJaAbortRef.current = true;
-    };
-  }, [sourcePrompt, debounceMs, enabled, autoTranslate, selectedModel, translatorType, target, setJaPrompt, onTranslateSuccess]);
+  // Abort manager for manual translations
+  const jaToEnAbortManager = createAbortManager();
 
   /**
-   * Feature B: Japanese text change handler
+   * Japanese text change handler
    *
    * IMPORTANT: To prevent infinite translation loops, this handler does NOT
    * automatically trigger reverse translation (ja-to-en).
@@ -236,17 +142,12 @@ const useBidirectionalTranslationCore = (
     setJaPrompt(newJapaneseText);
     setError(null);
 
-    // Clear any pending reverse translation timers
-    if (jaToEnTimerRef.current) {
-      clearTimeout(jaToEnTimerRef.current);
-    }
-
     // Cancel in-progress reverse translation
-    jaToEnAbortRef.current = true;
+    jaToEnAbortManager.abort();
 
     // NOTE: We do NOT auto-translate Japanese → English to prevent loops
     // Users can use the manual "日→英" button instead
-  }, [setJaPrompt]);
+  }, [setJaPrompt, setTranslatedText, setError, jaToEnAbortManager]);
 
   /**
    * Manual translation trigger English → Japanese (for when auto-translate is disabled)
@@ -258,40 +159,21 @@ const useBidirectionalTranslationCore = (
       return;
     }
 
-    enToJaAbortRef.current = false;
     setIsTranslating(true);
     setError(null);
 
     try {
       const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType);
-
-      if (!enToJaAbortRef.current) {
-        setTranslatedText(result);
-        // Save to Context for persistence
-        setJaPrompt(result);
-
-        // Trigger category mode after successful translation
-        onTranslateSuccess();
-      }
+      setTranslatedText(result);
+      setJaPrompt(result);
     } catch (err: unknown) {
-      if (!enToJaAbortRef.current) {
-        let errorMessage = '翻訳中にエラーが発生しました';
-
-        if (err instanceof TranslationError) {
-          errorMessage = err.message;
-        } else if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-
-        setError(errorMessage);
-        console.error(`Manual translation error (${target}):`, err);
-      }
+      const errorMessage = extractErrorMessage(err, '翻訳中にエラーが発生しました');
+      setError(errorMessage);
+      console.error(`Manual translation error (${target}):`, err);
     } finally {
-      if (!enToJaAbortRef.current) {
-        setIsTranslating(false);
-      }
+      setIsTranslating(false);
     }
-  }, [sourcePrompt, selectedModel, translatorType, target, setJaPrompt, onTranslateSuccess]);
+  }, [sourcePrompt, selectedModel, translatorType, target, setJaPrompt, setTranslatedText, setError, setIsTranslating]);
 
   /**
    * Manual translation trigger Japanese → English
@@ -310,16 +192,16 @@ const useBidirectionalTranslationCore = (
       setOriginalPrompt(target, sourcePrompt);
     }
 
-    jaToEnAbortRef.current = false;
+    jaToEnAbortManager.reset();
     setIsTranslating(true);
     setError(null);
 
     try {
       const result = await translateText(translatedText, 'ja-to-en', selectedModel, translatorType);
 
-      if (!jaToEnAbortRef.current) {
+      if (!jaToEnAbortManager.isAborted()) {
         // Set flag to skip the next auto-translation triggered by updatePrompt
-        skipNextAutoTranslateRef.current = true;
+        autoTranslation.skipNext();
 
         // Update Context source (English)
         updatePrompt(target, result);
@@ -327,40 +209,39 @@ const useBidirectionalTranslationCore = (
         logger.info(`Reverse translation completed for ${target}`);
       }
     } catch (err: unknown) {
-      if (!jaToEnAbortRef.current) {
-        let errorMessage = '逆翻訳中にエラーが発生しました';
-
-        if (err instanceof TranslationError) {
-          errorMessage = err.message;
-        } else if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-
+      if (!jaToEnAbortManager.isAborted()) {
+        const errorMessage = extractErrorMessage(err, '逆翻訳中にエラーが発生しました');
         setError(errorMessage);
         console.error(`Manual reverse translation error (${target}):`, err);
       }
     } finally {
-      if (!jaToEnAbortRef.current) {
+      if (!jaToEnAbortManager.isAborted()) {
         setIsTranslating(false);
       }
     }
-  }, [translatedText, selectedModel, translatorType, target, updatePrompt, sourcePrompt, hasOriginal, setOriginalPrompt]);
+  }, [
+    translatedText,
+    selectedModel,
+    translatorType,
+    target,
+    updatePrompt,
+    sourcePrompt,
+    hasOriginal,
+    setOriginalPrompt,
+    jaToEnAbortManager,
+    autoTranslation,
+    setError,
+    setIsTranslating
+  ]);
 
   /**
-   * Cleanup timers on component unmount
+   * Cleanup on component unmount
    */
   useEffect(() => {
     return () => {
-      if (enToJaTimerRef.current) {
-        clearTimeout(enToJaTimerRef.current);
-      }
-      if (jaToEnTimerRef.current) {
-        clearTimeout(jaToEnTimerRef.current);
-      }
-      enToJaAbortRef.current = true;
-      jaToEnAbortRef.current = true;
+      jaToEnAbortManager.abort();
     };
-  }, []);
+  }, [jaToEnAbortManager]);
 
   return {
     translatedText,
@@ -401,7 +282,7 @@ const useBidirectionalTranslationCore = (
  *   onChange={(e) => handleJapaneseChange(e.target.value)}
  * />
  *
- * // Manual reverse translation button
+ * // Manual reverse translation button (Japanese → English)
  * <button onClick={manualTranslateReverse}>日→英</button>
  * ```
  */
@@ -414,26 +295,10 @@ export const useTranslation = (
 /**
  * One-way auto-translation hook for negative prompt
  *
- * Provides same functionality as useTranslation but for negative prompt.
- * See useTranslation documentation for details on one-way auto-translation behavior.
+ * Same features as useTranslation() but for negative prompt.
  *
  * @param options - Hook options
  * @returns Translation result and control functions
- *
- * @example
- * ```tsx
- * const {
- *   translatedText,
- *   handleJapaneseChange,
- *   manualTranslateReverse
- * } = useNegativeTranslation();
- *
- * <textarea
- *   value={translatedText}
- *   onChange={(e) => handleJapaneseChange(e.target.value)}
- * />
- * <button onClick={manualTranslateReverse}>日→英</button>
- * ```
  */
 export const useNegativeTranslation = (
   options: UseTranslationOptions = {}
