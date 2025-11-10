@@ -124,12 +124,26 @@ const isQualityTag = (tag: string, language: 'en' | 'ja'): boolean => {
 };
 
 /**
+ * Remove weight syntax from tags (e.g., "(tag:1.3)" -> "tag")
+ * 重み構文を削除（例：(tag:1.3) -> tag）
+ */
+const removeWeightSyntax = (tag: string): string => {
+  // Remove outer parentheses and weight values like (tag:1.3)
+  let cleaned = tag.replace(/^\(([^)]+):[0-9.]+\)$/, '$1');
+
+  // Remove just parentheses if no weight
+  cleaned = cleaned.replace(/^\(([^)]+)\)$/, '$1');
+
+  return cleaned.trim();
+};
+
+/**
  * Parse comma-separated tags into array
  */
 const parseTags = (text: string): string[] => {
   return text
     .split(',')
-    .map(tag => tag.trim())
+    .map(tag => removeWeightSyntax(tag.trim()))
     .filter(tag => tag.length > 0);
 };
 
@@ -164,6 +178,26 @@ const buildTagLookupMap = (): {
 const { enMap: EN_TAG_MAP, jaMap: JA_TAG_MAP } = buildTagLookupMap();
 
 /**
+ * Calculate similarity between two strings for fuzzy matching
+ * 類似度を計算（あいまいマッチング用）
+ */
+const calculateSimilarity = (str1: string, str2: string): number => {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
+
+  if (longer.length === 0) {
+    return 1.0;
+  }
+
+  // Check if shorter is contained in longer (high similarity)
+  if (longer.includes(shorter)) {
+    return shorter.length / longer.length;
+  }
+
+  return 0;
+};
+
+/**
  * Classify a tag into a category using keyword database
  * キーワードデータベースを使用してタグを分類
  */
@@ -177,16 +211,40 @@ const classifyTag = (tag: string, language: 'en' | 'ja'): string => {
   const normalizedTag = language === 'en' ? tag.toLowerCase().trim() : tag.trim();
   const tagMap = language === 'en' ? EN_TAG_MAP : JA_TAG_MAP;
 
+  // 1. Exact match
   const category = tagMap.get(normalizedTag);
   if (category) {
     return category;
   }
 
-  // Try partial matching for complex tags (e.g., tags with parentheses or modifiers)
-  // 複雑なタグ（括弧や修飾語を含む）の部分一致を試行
+  // 2. Try partial matching with similarity scoring
+  // 複雑なタグの部分一致を試行（類似度スコアリング付き）
+  let bestMatch: { category: string; similarity: number } | null = null;
+
   for (const [registeredTag, cat] of tagMap.entries()) {
-    if (normalizedTag.includes(registeredTag) || registeredTag.includes(normalizedTag)) {
-      return cat;
+    // Skip very short tags to avoid false positives
+    if (registeredTag.length < 2) continue;
+
+    const similarity = calculateSimilarity(normalizedTag, registeredTag);
+
+    // If similarity is high enough, consider it a match
+    if (similarity > 0.6 && (!bestMatch || similarity > bestMatch.similarity)) {
+      bestMatch = { category: cat, similarity };
+    }
+  }
+
+  if (bestMatch) {
+    return bestMatch.category;
+  }
+
+  // 3. Word-based matching for Japanese
+  // 日本語の場合、単語ベースのマッチングを試行
+  if (language === 'ja') {
+    for (const [registeredTag, cat] of tagMap.entries()) {
+      // Check if tag contains the registered keyword
+      if (normalizedTag.includes(registeredTag) && registeredTag.length >= 2) {
+        return cat;
+      }
     }
   }
 
