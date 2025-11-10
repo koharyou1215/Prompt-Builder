@@ -100,6 +100,13 @@ const TranslationArea: React.FC = () => {
   }, [restoreOriginal]);
 
   /**
+   * Clear positive Japanese translation
+   */
+  const handleClearPositive = useCallback((): void => {
+    handlePosChange('');
+  }, [handlePosChange]);
+
+  /**
    * Switch to category mode manually
    */
   const handleSwitchToCategoryMode = useCallback((): void => {
@@ -169,6 +176,15 @@ const TranslationArea: React.FC = () => {
                   📂
                 </button>
               )}
+              <button
+                onClick={handleClearPositive}
+                disabled={!posTranslated.trim()}
+                className={styles.iconButton}
+                title="日本語テキストを一括削除"
+                aria-label="一括削除"
+              >
+                🗑️
+              </button>
               <button
                 onClick={handleCopyPositive}
                 disabled={!posTranslated.trim()}

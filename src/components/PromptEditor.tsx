@@ -66,6 +66,13 @@ const PromptEditor: React.FC = () => {
     void copyToClipboard(promptState.positive, 'positive');
   }, [promptState.positive, copyToClipboard]);
 
+  /**
+   * Clear positive prompt
+   */
+  const handleClearPositive = useCallback((): void => {
+    setPositivePrompt('');
+  }, [setPositivePrompt]);
+
   return (
     <div className="prompt-editor">
       <div className="prompt-section">
@@ -79,6 +86,22 @@ const PromptEditor: React.FC = () => {
                 {copyFeedback.message}
               </span>
             )}
+            <button
+              onClick={handleClearPositive}
+              disabled={!promptState.positive.trim()}
+              style={{
+                padding: '4px 12px',
+                fontSize: '12px',
+                background: promptState.positive.trim() ? '#ef4444' : '#d1d5db',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: promptState.positive.trim() ? 'pointer' : 'not-allowed',
+              }}
+              title="英語プロンプトを一括削除"
+            >
+              🗑️ 一括削除
+            </button>
             <button
               onClick={handleCopyPositive}
               disabled={!promptState.positive.trim()}
