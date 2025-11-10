@@ -13,11 +13,6 @@
  */
 
 /**
- * Placeholder prefix to ensure uniqueness
- */
-const PLACEHOLDER_PREFIX = '__PROMPTSYNTAX__';
-
-/**
  * Pattern to match special prompt syntax
  * Matches:
  * - Parentheses with optional weight: (keyword) or (keyword:1.2)
