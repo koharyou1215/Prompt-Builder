@@ -106,6 +106,13 @@ const TranslationArea: React.FC = () => {
     switchMode('category');
   }, [switchMode]);
 
+  /**
+   * Clear Japanese translation
+   */
+  const handleClearPositive = useCallback((): void => {
+    handlePosChange('');
+  }, [handlePosChange]);
+
   return (
     <div className={styles.translationArea}>
       {/* Category Mode View */}
@@ -169,6 +176,15 @@ const TranslationArea: React.FC = () => {
                   📂
                 </button>
               )}
+              <button
+                onClick={handleClearPositive}
+                disabled={!posTranslated.trim()}
+                className={styles.iconButton}
+                title="日本語テキストを一括削除"
+                aria-label="一括削除"
+              >
+                🗑️
+              </button>
               <button
                 onClick={handleCopyPositive}
                 disabled={!posTranslated.trim()}

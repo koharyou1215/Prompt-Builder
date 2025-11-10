@@ -63,15 +63,9 @@ const HistoryPanel: React.FC = () => {
   }, [loadFromHistory]);
 
   /**
-   * Delete history entry with confirmation
+   * Delete history entry without confirmation
    */
   const handleDelete = useCallback(async (entry: HistoryEntry): Promise<void> => {
-    const confirmed = window.confirm(
-      `履歴を削除しますか？\n\n${entry.name || formatDate(entry.timestamp)}`
-    );
-
-    if (!confirmed) return;
-
     try {
       await deleteFromHistory(entry.id);
     } catch (err) {

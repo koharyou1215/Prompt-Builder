@@ -39,12 +39,10 @@ const KeywordSelector: React.FC = () => {
    * Handle delete button click
    */
   const handleDelete = useCallback(async (categoryName: string, keyword: { ja: string; en: string }): Promise<void> => {
-    if (window.confirm(`「${keyword.ja}」を削除しますか？`)) {
-      try {
-        await deleteKeyword(categoryName, keyword.en);
-      } catch (err) {
-        console.error('Failed to delete keyword:', err);
-      }
+    try {
+      await deleteKeyword(categoryName, keyword.en);
+    } catch (err) {
+      console.error('Failed to delete keyword:', err);
     }
   }, [deleteKeyword]);
 
