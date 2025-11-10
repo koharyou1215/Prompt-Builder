@@ -106,7 +106,12 @@
 .keywordActions {
   display: flex;
   gap: 2px;
-  opacity: 1; /* Always visible */
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.keywordWrapper:hover .keywordActions {
+  opacity: 1;
 }
 
 /* Edit button */
