@@ -197,6 +197,168 @@ const parseGeminiResponse = (data: GeminiResponse): string => {
   return text.trim();
 };
 
+// ===== Helper Functions for Translation =====
+
+/**
+ * Validate translation input
+ *
+ * @param text - Text to validate
+ * @returns Validated text or empty string
+ */
+const validateTranslationInput = (text: string): string => {
+  if (!text || text.trim() === '') {
+    return '';
+  }
+  return text.trim();
+};
+
+/**
+ * Build Gemini API request body
+ *
+ * @param prompt - Translation prompt
+ * @returns Gemini request object
+ */
+const buildGeminiRequest = (prompt: string): GeminiRequest => {
+  return {
+    contents: [
+      {
+        parts: [{ text: prompt }]
+      }
+    ],
+    generationConfig: {
+      temperature: TRANSLATION_TEMPERATURE,
+      maxOutputTokens: TRANSLATION_MAX_OUTPUT_TOKENS
+    },
+    safetySettings: SAFETY_CATEGORIES.map((category) => ({
+      category,
+      threshold: DEFAULT_SAFETY_THRESHOLD
+    }))
+  };
+};
+
+/**
+ * Map API error to user-friendly message
+ *
+ * @param status - HTTP status code
+ * @param errorBody - Error response body
+ * @param modelId - Model ID used in request
+ * @returns User-friendly error message
+ */
+const mapApiErrorToMessage = (
+  status: number,
+  errorBody: string,
+  modelId: string
+): string => {
+  try {
+    const errorData = JSON.parse(errorBody);
+    const apiErrorMessage = errorData?.error?.message || '';
+
+    if (apiErrorMessage.includes('API key not valid') || apiErrorMessage.includes('API_KEY_INVALID')) {
+      return 'APIキーが無効です。設定を確認してください。';
+    }
+    if (apiErrorMessage.includes('models/') && apiErrorMessage.includes('not found')) {
+      return `指定されたモデル (${modelId}) が見つかりません。モデル名を確認してください。`;
+    }
+
+    switch (status) {
+      case 400:
+        return `リクエストエラー: ${apiErrorMessage || '不正なリクエストです'}`;
+      case 403:
+        return `アクセス拒否: ${apiErrorMessage || 'APIキーの権限を確認してください'}`;
+      case 404:
+        return `リソースが見つかりません: ${apiErrorMessage || 'モデルIDを確認してください'}`;
+      case 429:
+        return 'APIのレート制限に達しました。少し待ってから再度お試しください。';
+      case 503:
+        return 'APIサーバーが一時的に利用できません。';
+      default:
+        return `APIエラー (HTTP ${status}): ${apiErrorMessage || '不明なエラー'}`;
+    }
+  } catch {
+    return `Gemini APIがエラーを返しました (HTTP ${status})`;
+  }
+};
+
+/**
+ * Execute single translation API request
+ *
+ * @param url - API endpoint URL
+ * @param requestBody - Request body
+ * @param modelId - Model ID for error messages
+ * @returns Translated text
+ * @throws {TranslationError} If request fails
+ */
+const executeTranslationApiCall = async (
+  url: string,
+  requestBody: GeminiRequest,
+  modelId: string
+): Promise<string> => {
+  const response = await fetchWithTimeout(
+    url,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    },
+    TRANSLATION_TIMEOUT_MS
+  );
+
+  if (!response.ok) {
+    let errorBody = '';
+    try {
+      errorBody = await response.text();
+      logger.error(`API error response (HTTP ${response.status})`, { errorBody });
+    } catch (e) {
+      logger.error('Failed to read error response body', e);
+    }
+
+    const userMessage = mapApiErrorToMessage(response.status, errorBody, modelId);
+    throw new TranslationError(
+      userMessage,
+      'API_HTTP_ERROR',
+      response.status
+    );
+  }
+
+  const data: unknown = await response.json();
+
+  if (!isGeminiResponse(data)) {
+    throw new TranslationError(
+      '不正なレスポンス形式です',
+      'INVALID_RESPONSE',
+      500
+    );
+  }
+
+  return parseGeminiResponse(data);
+};
+
+/**
+ * Calculate exponential backoff delay
+ *
+ * @param attempt - Current attempt number (0-indexed)
+ * @returns Delay in milliseconds
+ */
+const calculateBackoffDelay = (attempt: number): number => {
+  return Math.pow(2, attempt) * 1000;
+};
+
+/**
+ * Check if error is retryable
+ *
+ * @param error - Error to check
+ * @returns true if error should trigger retry
+ */
+const isRetryableError = (error: unknown): boolean => {
+  if (error instanceof TranslationError) {
+    return error.code === 'TIMEOUT' ||
+           error.statusCode === 429 ||
+           error.statusCode === 503 ||
+           error.statusCode === 500;
+  }
+  return false;
+};
+
 // ===== Main Translation Function =====
 
 /**
@@ -250,7 +412,7 @@ export const translateTextWithGemini = async (
   direction: TranslationDirection,
   modelId: ApprovedModel = GEMINI_MODEL
 ): Promise<string> => {
-  // Validation: API key
+  // Validate API key
   if (!GEMINI_API_KEY) {
     throw new TranslationError(
       'Gemini APIキーが設定されていません。環境変数 VITE_GEMINI_API_KEY を確認してください。',
@@ -259,157 +421,46 @@ export const translateTextWithGemini = async (
     );
   }
 
-  // Validation: Empty text
-  if (!text || text.trim() === '') {
+  // Validate and normalize input
+  const validatedText = validateTranslationInput(text);
+  if (!validatedText) {
     return '';
   }
 
   // Mask special prompt syntax before translation
-  const { maskedText, counters } = maskPromptSyntax(text);
+  const { maskedText, counters } = maskPromptSyntax(validatedText);
 
-  // Log masking details in development mode
   const totalSyntaxCount = counters.lparen + counters.lbrace + counters.lbracket + counters.weight;
   if (totalSyntaxCount > 0) {
     logger.debug('Masked special syntax', {
-      originalLength: text.length,
+      originalLength: validatedText.length,
       maskedLength: maskedText.length,
       syntaxCount: totalSyntaxCount
     });
   }
 
-  // Create prompt with masked text
+  // Prepare request
   const prompt = createPrompt(maskedText, direction);
+  const requestBody = buildGeminiRequest(prompt);
+  const apiUrl = getApiUrl(modelId);
+  const url = `${apiUrl}?key=${GEMINI_API_KEY}`;
 
-  // Build request body
-  const requestBody: GeminiRequest = {
-    contents: [
-      {
-        parts: [
-          {
-            text: prompt
-          }
-        ]
-      }
-    ],
-    generationConfig: {
-      temperature: TRANSLATION_TEMPERATURE,
-      maxOutputTokens: TRANSLATION_MAX_OUTPUT_TOKENS
-    },
-    safetySettings: SAFETY_CATEGORIES.map((category) => ({
-      category,
-      threshold: DEFAULT_SAFETY_THRESHOLD
-    }))
-  };
-
-  // Retry loop
+  // Retry loop with exponential backoff
   for (let attempt = 0; attempt < TRANSLATION_MAX_RETRIES; attempt++) {
     try {
-      const apiUrl = getApiUrl(modelId);
-      const url = `${apiUrl}?key=${GEMINI_API_KEY}`;
-
-      // Log request details in development mode (API key excluded for security)
       logger.debug('Translation request initiated', {
         direction,
         modelId,
         attempt: attempt + 1,
-        textLength: text.length
+        textLength: validatedText.length
       });
 
-      // Send request
-      const response = await fetchWithTimeout(
-        url,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestBody)
-        },
-        TRANSLATION_TIMEOUT_MS
-      );
-
-      // Check HTTP status
-      if (!response.ok) {
-        // Get error response body for detailed logging
-        let errorBody = '';
-        try {
-          errorBody = await response.text();
-          logger.error(`API error response (HTTP ${response.status})`, { errorBody });
-        } catch (e) {
-          logger.error('Failed to read error response body', e);
-        }
-
-        // Retry on 429 (rate limit), 503 (service unavailable), or 500 (server error)
-        if ((response.status === 429 || response.status === 503 || response.status === 500) && attempt < TRANSLATION_MAX_RETRIES - 1) {
-          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-
-          // Log retry attempt
-          logger.debug(`Retrying after HTTP ${response.status} error`, {
-            attempt: attempt + 1,
-            maxRetries: TRANSLATION_MAX_RETRIES,
-            delayMs: delay
-          });
-
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-
-        // Parse error details for user-friendly message
-        let userMessage = '';
-        try {
-          const errorData = JSON.parse(errorBody);
-          const apiErrorMessage = errorData?.error?.message || '';
-
-          // Check for specific error patterns
-          if (apiErrorMessage.includes('API key not valid') || apiErrorMessage.includes('API_KEY_INVALID')) {
-            userMessage = 'APIキーが無効です。設定を確認してください。';
-          } else if (apiErrorMessage.includes('models/') && apiErrorMessage.includes('not found')) {
-            userMessage = `指定されたモデル (${modelId}) が見つかりません。モデル名を確認してください。`;
-          } else if (response.status === 429) {
-            userMessage = 'APIのレート制限に達しました。少し待ってから再度お試しください。';
-          } else if (response.status === 503) {
-            userMessage = 'APIサーバーが一時的に利用できません。';
-          } else if (response.status === 400) {
-            userMessage = `リクエストエラー: ${apiErrorMessage || '不正なリクエストです'}`;
-          } else if (response.status === 403) {
-            userMessage = `アクセス拒否: ${apiErrorMessage || 'APIキーの権限を確認してください'}`;
-          } else if (response.status === 404) {
-            userMessage = `リソースが見つかりません: ${apiErrorMessage || 'モデルIDを確認してください'}`;
-          } else {
-            userMessage = `APIエラー (HTTP ${response.status}): ${apiErrorMessage || '不明なエラー'}`;
-          }
-        } catch (e) {
-          userMessage = `Gemini APIがエラーを返しました (HTTP ${response.status})`;
-        }
-
-        throw new TranslationError(
-          userMessage,
-          'API_HTTP_ERROR',
-          response.status,
-          attempt + 1,
-          TRANSLATION_MAX_RETRIES
-        );
-      }
-
-      // Parse JSON
-      const data: unknown = await response.json();
-
-      // Validate response structure
-      if (!isGeminiResponse(data)) {
-        throw new TranslationError(
-          '不正なレスポンス形式です',
-          'INVALID_RESPONSE',
-          500
-        );
-      }
-
-      // Parse result
-      const translatedText = parseGeminiResponse(data);
+      // Execute API call
+      const translatedText = await executeTranslationApiCall(url, requestBody, modelId);
 
       // Restore original syntax
       const restoredText = unmaskPromptSyntax(translatedText, counters);
 
-      // Log restoration in development mode
       if (totalSyntaxCount > 0) {
         logger.debug('Restored special syntax', {
           translatedLength: translatedText.length,
@@ -420,42 +471,30 @@ export const translateTextWithGemini = async (
       return restoredText;
 
     } catch (error) {
-      // Re-throw TranslationError
+      // Check if we should retry
+      const shouldRetry = attempt < TRANSLATION_MAX_RETRIES - 1 && isRetryableError(error);
+
+      if (shouldRetry) {
+        const delay = calculateBackoffDelay(attempt);
+
+        logger.debug('Retrying after error', {
+          errorType: error instanceof TranslationError ? error.code : 'unknown',
+          attempt: attempt + 1,
+          maxRetries: TRANSLATION_MAX_RETRIES,
+          delayMs: delay
+        });
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      // Handle non-retryable errors
       if (error instanceof TranslationError) {
-        // Retry on timeout
-        if (error.code === 'TIMEOUT' && attempt < TRANSLATION_MAX_RETRIES - 1) {
-          const delay = Math.pow(2, attempt) * 1000;
-
-          // Log retry attempt
-          logger.debug('Retrying after timeout', {
-            attempt: attempt + 1,
-            maxRetries: TRANSLATION_MAX_RETRIES,
-            delayMs: delay
-          });
-
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
         throw error;
       }
 
       // Network error
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        // Retry on network error
-        if (attempt < TRANSLATION_MAX_RETRIES - 1) {
-          const delay = Math.pow(2, attempt) * 1000;
-
-          // Log retry attempt
-          logger.debug('Retrying after network error', {
-            attempt: attempt + 1,
-            maxRetries: TRANSLATION_MAX_RETRIES,
-            delayMs: delay
-          });
-
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-
         throw new TranslationError(
           'ネットワークエラーが発生しました。インターネット接続を確認してください。',
           'NETWORK_ERROR',
