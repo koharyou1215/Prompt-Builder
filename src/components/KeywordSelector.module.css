@@ -27,12 +27,47 @@
   margin-bottom: var(--spacing-lg);
 }
 
+/* Category header - contains title and controls */
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
 /* Category title */
 .categoryTitle {
   font-size: var(--font-size-sm);
   font-weight: bold;
-  margin-bottom: var(--spacing-sm);
+  margin: 0;
   color: var(--color-text-secondary);
+}
+
+/* Category controls - reorder buttons */
+.categoryControls {
+  display: flex;
+  gap: 4px;
+}
+
+/* Category move button */
+.categoryMoveButton {
+  padding: 2px 6px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.categoryMoveButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.categoryMoveButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Keyword button container */
@@ -40,6 +75,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
+}
+
+/* Keyword wrapper - contains button and action buttons */
+.keywordWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Keyword button */
@@ -57,4 +100,46 @@
 .keywordButton:hover {
   background-color: var(--color-primary);
   color: #ffffff;
+}
+
+/* Keyword actions container */
+.keywordActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.keywordWrapper:hover .keywordActions {
+  opacity: 1;
+}
+
+/* Edit button */
+.editButton {
+  padding: 2px 4px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.editButton:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Delete button */
+.deleteButton {
+  padding: 2px 4px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.1);
 }

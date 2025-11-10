@@ -102,9 +102,9 @@ const useBidirectionalTranslationCore = (
   // Get stored Japanese translation from Context
   const storedJaPrompt = target === 'positive' ? promptState.positiveJa : promptState.negativeJa;
 
-  // Get settings (auto-translate, model selection, translator type)
+  // Get settings (auto-translate, model selection, translator type, tag organization)
   const { settings } = useSettings();
-  const { autoTranslate, selectedModel, translatorType } = settings;
+  const { autoTranslate, selectedModel, translatorType, organizeTagsByCategory } = settings;
 
   // Translation result (Japanese) state - initialize from Context
   const [translatedText, setTranslatedText] = useState<string>(storedJaPrompt || '');
@@ -175,7 +175,7 @@ const useBidirectionalTranslationCore = (
 
         try {
           // Call translation service with selected model and translator type
-          const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType);
+          const result = await translateText(sourcePrompt, 'en-to-ja', selectedModel, translatorType, organizeTagsByCategory);
 
           // Check if not canceled during translation
           if (!enToJaAbortRef.current) {
@@ -315,7 +315,7 @@ const useBidirectionalTranslationCore = (
     setError(null);
 
     try {
-      const result = await translateText(translatedText, 'ja-to-en', selectedModel, translatorType);
+      const result = await translateText(translatedText, 'ja-to-en', selectedModel, translatorType, organizeTagsByCategory);
 
       if (!jaToEnAbortRef.current) {
         // Set flag to skip the next auto-translation triggered by updatePrompt

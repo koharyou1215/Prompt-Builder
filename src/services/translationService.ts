@@ -80,7 +80,8 @@ const getApiUrl = (modelId: ApprovedModel = GEMINI_MODEL): string => {
 const TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
   'en-to-ja': `以下の英語のAI画像生成プロンプトを、日本語に翻訳してください。
 意味とニュアンスを正確に保持し、タグ形式（カンマ区切り）を維持してください。
-括弧 () や記号は必ず保持してください。
+【重要】括弧内のテキストも翻訳してください。ただし、括弧の構造と重み値（:1.3など）は必ず保持してください。
+例: (beautiful eyes:1.2) → (美しい目:1.2)
 翻訳結果のみを出力し、説明は不要です。
 
 翻訳対象: `,
@@ -90,7 +91,8 @@ const TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
 1. タグ形式（カンマ区切り）で出力
 2. 複数語は アンダースコアで結合（例: long_hair, blue_eyes）
 3. 品質タグを先頭に配置（masterpiece, best quality等）
-4. 括弧 () や記号は必ず保持してください（強調を表します）
+4. 【重要】括弧内のテキストも翻訳してください。ただし、括弧の構造と重み値（:1.3など）は必ず保持してください。
+   例: (美しい目:1.2) → (beautiful_eyes:1.2)
 5. 日本語は一切使用禁止、全て英語で出力
 
 翻訳結果のみを出力し、説明は不要です。
@@ -98,13 +100,79 @@ const TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
 翻訳対象: `
 };
 
+/**
+ * Translation prompts with category organization
+ * カテゴリ別整理付き翻訳プロンプト
+ */
+const ORGANIZED_TRANSLATION_PROMPTS: Record<TranslationDirection, string> = {
+  'en-to-ja': `以下の英語のAI画像生成プロンプトを、日本語に翻訳し、カテゴリ別に整理してください。
+
+【翻訳ルール】
+- 意味とニュアンスを正確に保持
+- タグ形式（カンマ区切り）を維持
+- 括弧内のテキストも翻訳し、括弧の構造と重み値（:1.3など）は必ず保持
+  例: (beautiful eyes:1.2) → (美しい目:1.2)
+
+【カテゴリ整理ルール】
+以下の順序でタグをカテゴリ別に分類し、各カテゴリを空行（改行2つ）で区切ってください。
+カテゴリ名は出力せず、タグのみを出力してください。
+
+1. 品質: masterpiece, best quality, 8Kなどの画質・品質関連
+2. キャラクター: 髪型、髪色、目、体型、人物の特徴
+3. 表情: 笑顔、ウィンク、口の状態、感情表現
+4. 服装: 衣装、アクセサリー、装飾品
+5. ポーズ: 姿勢、手足の配置、動作
+6. シチュエーション: 状況、行動、関係性
+7. 構図・アングル・背景: カメラアングル、背景、場所
+8. エフェクト: 視覚効果、ライティング、モーションブラー
+
+分類できないタグは最後にまとめてください。
+翻訳結果のみを出力し、説明は不要です。
+
+翻訳対象: `,
+
+  'ja-to-en': `以下の日本語テキストを、AI画像生成プロンプトに適した英語に翻訳し、カテゴリ別に整理してください。
+
+【翻訳ルール】
+1. タグ形式（カンマ区切り）で出力
+2. 複数語はアンダースコアで結合（例: long_hair, blue_eyes）
+3. 括弧内のテキストも翻訳し、括弧の構造と重み値（:1.3など）は必ず保持
+   例: (美しい目:1.2) → (beautiful_eyes:1.2)
+4. 日本語は一切使用禁止、全て英語で出力
+
+【カテゴリ整理ルール】
+以下の順序でタグをカテゴリ別に分類し、各カテゴリを空行（改行2つ）で区切ってください。
+カテゴリ名は出力せず、タグのみを出力してください。
+
+1. Quality: masterpiece, best quality, 8K resolution, etc.
+2. Character: hair style, hair color, eyes, body type, character features
+3. Expression: smile, wink, mouth state, emotions
+4. Clothing: costumes, accessories, ornaments
+5. Pose: posture, limb placement, actions
+6. Situation: context, activities, relationships
+7. Composition/Angle/Background: camera angle, background, location
+8. Effects: visual effects, lighting, motion blur
+
+Unclassified tags should be grouped at the end.
+翻訳結果のみを出力し、説明は不要です。
+
+翻訳対象: `
+};
+
+
 // ===== Helper Functions =====
 
 /**
  * Create translation prompt
  */
-const createPrompt = (text: string, direction: TranslationDirection): string => {
-  const template = TRANSLATION_PROMPTS[direction];
+const createPrompt = (
+  text: string,
+  direction: TranslationDirection,
+  organizeByCategory: boolean = false
+): string => {
+  const template = organizeByCategory
+    ? ORGANIZED_TRANSLATION_PROMPTS[direction]
+    : TRANSLATION_PROMPTS[direction];
   return template + text;
 };
 
@@ -219,15 +287,19 @@ export const translateText = async (
   text: string,
   direction: TranslationDirection,
   modelId: ApprovedModel = GEMINI_MODEL,
-  translatorType: TranslatorType = 'gemini'
+  translatorType: TranslatorType = 'gemini',
+  organizeByCategory: boolean = false
 ): Promise<string> => {
   // Route to appropriate translation service
   if (translatorType === 'google-translate') {
+    // Note: Google Translate doesn't support category organization
+    // If organizeByCategory is true but using Google Translate,
+    // the organization will be handled client-side
     return translateTextWithGoogle(text, direction);
   }
 
-  // Default: Use Gemini API
-  return translateTextWithGemini(text, direction, modelId);
+  // Default: Use Gemini API (with optional category organization)
+  return translateTextWithGemini(text, direction, modelId, organizeByCategory);
 };
 
 /**
@@ -248,7 +320,8 @@ export const translateText = async (
 export const translateTextWithGemini = async (
   text: string,
   direction: TranslationDirection,
-  modelId: ApprovedModel = GEMINI_MODEL
+  modelId: ApprovedModel = GEMINI_MODEL,
+  organizeByCategory: boolean = false
 ): Promise<string> => {
   // Validation: API key
   if (!GEMINI_API_KEY) {
@@ -277,7 +350,7 @@ export const translateTextWithGemini = async (
   }
 
   // Create prompt with masked text
-  const prompt = createPrompt(maskedText, direction);
+  const prompt = createPrompt(maskedText, direction, organizeByCategory);
 
   // Build request body
   const requestBody: GeminiRequest = {

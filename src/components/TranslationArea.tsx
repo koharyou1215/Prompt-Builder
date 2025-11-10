@@ -11,12 +11,11 @@
  * translation nuances cause continuous back-and-forth translation.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePromptContext } from '../contexts/PromptContext';
 import { CategoryModeView } from './CategoryModeView';
-import { organizeAndFormatTags } from '../utils/tagOrganizer';
 import styles from './TranslationArea.module.css';
 
 /**
@@ -41,6 +40,8 @@ const TranslationArea: React.FC = () => {
   const { mode, switchMode, restoreOriginal, hasOriginal } = usePromptContext();
 
   // Positive prompt translation
+  // Note: Tag organization is now handled by the translation API (Gemini)
+  // when organizeTagsByCategory is enabled in settings
   const {
     translatedText: posTranslated,
     handleJapaneseChange: handlePosChange,
@@ -49,17 +50,6 @@ const TranslationArea: React.FC = () => {
     isTranslating: posTranslating,
     error: posError
   } = useTranslation();
-
-  // Organize translated text by category for copying (if enabled)
-  // タグ整理が有効な場合、コピー用にカテゴリ別に整理する
-  const organizedTextForCopy = useMemo(() => {
-    if (!posTranslated || !organizeTagsByCategory) {
-      return posTranslated;
-    }
-
-    // Organize tags by category with line breaks
-    return organizeAndFormatTags(posTranslated, 'ja', false);
-  }, [posTranslated, organizeTagsByCategory]);
 
   const handlePositiveChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     handlePosChange(event.target.value);
@@ -98,11 +88,12 @@ const TranslationArea: React.FC = () => {
   }, []);
 
   /**
-   * Copy positive Japanese translation (organized if enabled)
+   * Copy positive Japanese translation
+   * (Tag organization is already done by translation API if enabled)
    */
   const handleCopyPositive = useCallback((): void => {
-    void copyToClipboard(organizedTextForCopy, 'positive');
-  }, [organizedTextForCopy, copyToClipboard]);
+    void copyToClipboard(posTranslated, 'positive');
+  }, [posTranslated, copyToClipboard]);
 
   /**
    * Restore original English prompt (before reverse translation)

@@ -1,29 +1,32 @@
 /**
- * AddKeywordModal component
- * Modal dialog for adding custom keywords
+ * EditKeywordModal component
+ * Modal dialog for editing keywords (custom or default)
  *
  * Features:
- * - Category selection dropdown
- * - Japanese and English input fields
+ * - Category selection dropdown (pre-filled)
+ * - Japanese and English input fields (pre-filled)
  * - Validation and error handling
  * - Save and cancel actions
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useCustomKeywords } from '../hooks/useCustomKeywords';
 import { negativeKeywordCategories } from '../data/keywords';
 
-interface AddKeywordModalProps {
+interface EditKeywordModalProps {
   readonly isOpen: boolean;
+  readonly keyword: { categoryName: string; ja: string; en: string } | null;
   onClose: () => void;
 }
 
-const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) => {
-  const { addKeyword, allCategories } = useCustomKeywords();
+const EditKeywordModal: React.FC<EditKeywordModalProps> = ({ isOpen, keyword, onClose }) => {
+  const { updateKeyword, allCategories } = useCustomKeywords();
 
   const [categoryName, setCategoryName] = useState<string>('');
   const [jaText, setJaText] = useState<string>('');
   const [enText, setEnText] = useState<string>('');
+  const [originalEn, setOriginalEn] = useState<string>(''); // Store original English keyword
+  const [originalCategory, setOriginalCategory] = useState<string>(''); // Store original category
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +37,25 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
   ];
 
   /**
+   * Initialize form with keyword data
+   */
+  useEffect(() => {
+    if (keyword) {
+      setCategoryName(keyword.categoryName);
+      setJaText(keyword.ja);
+      setEnText(keyword.en);
+      setOriginalEn(keyword.en);
+      setOriginalCategory(keyword.categoryName);
+      setError(null);
+    }
+  }, [keyword]);
+
+  /**
    * Handle save
    */
   const handleSave = useCallback(async (): Promise<void> => {
+    if (!keyword) return;
+
     setError(null);
     setIsSaving(true);
 
@@ -51,31 +70,27 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
         throw new Error('英語を入力してください');
       }
 
-      await addKeyword(categoryName, jaText, enText);
+      // Use new updateKeyword API
+      const newCategoryName = categoryName !== originalCategory ? categoryName : undefined;
+      await updateKeyword(originalCategory, originalEn, jaText, enText, newCategoryName);
 
-      // Clear form and close
-      setCategoryName('');
-      setJaText('');
-      setEnText('');
+      // Close modal
       onClose();
     } catch (err) {
       const errorMessage = err instanceof Error
         ? err.message
-        : 'キーワードの追加に失敗しました';
+        : 'キーワードの更新に失敗しました';
       setError(errorMessage);
       console.error(err);
     } finally {
       setIsSaving(false);
     }
-  }, [categoryName, jaText, enText, addKeyword, onClose]);
+  }, [keyword, categoryName, jaText, enText, originalEn, originalCategory, updateKeyword, onClose]);
 
   /**
    * Handle cancel
    */
   const handleCancel = useCallback((): void => {
-    setCategoryName('');
-    setJaText('');
-    setEnText('');
     setError(null);
     onClose();
   }, [onClose]);
@@ -89,7 +104,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
     }
   }, [handleCancel]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !keyword) return null;
 
   return (
     <div
@@ -130,7 +145,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
           }}
         >
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
-            キーワードを追加
+            キーワードを編集
           </h2>
           <button
             onClick={handleCancel}
@@ -169,7 +184,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
           {/* Category Selection with ability to create new */}
           <div style={{ marginBottom: '16px' }}>
             <label
-              htmlFor="keyword-category"
+              htmlFor="edit-keyword-category"
               style={{
                 display: 'block',
                 marginBottom: '6px',
@@ -181,8 +196,8 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
               カテゴリー
             </label>
             <input
-              id="keyword-category"
-              list="category-list"
+              id="edit-keyword-category"
+              list="edit-category-list"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               placeholder="カテゴリーを選択または入力"
@@ -195,7 +210,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
                 background: '#fff'
               }}
             />
-            <datalist id="category-list">
+            <datalist id="edit-category-list">
               {allCategoryNames.map((name) => (
                 <option key={name} value={name} />
               ))}
@@ -304,7 +319,7 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
               cursor: isSaving ? 'not-allowed' : 'pointer'
             }}
           >
-            {isSaving ? '追加中...' : '追加'}
+            {isSaving ? '更新中...' : '更新'}
           </button>
         </div>
       </div>
@@ -312,4 +327,4 @@ const AddKeywordModal: React.FC<AddKeywordModalProps> = ({ isOpen, onClose }) =>
   );
 };
 
-export default AddKeywordModal;
+export default EditKeywordModal;
