@@ -104,6 +104,14 @@ const QUALITY_TAGS_JA = new Set([
   'プロフェッショナル',
   '8K',
   '4K',
+  '8K解像度',
+  '超高精細',
+  'アニメスタイル',
+  '美しい照明',
+  '鮮やかな色彩',
+  'シネマティックシェーディング',
+  '高解像度',
+  'シャープな線',
 ]);
 
 /**
@@ -198,6 +206,143 @@ const calculateSimilarity = (str1: string, str2: string): number => {
 };
 
 /**
+ * Classify tag by pattern matching for common Japanese tags
+ * 一般的な日本語タグのパターンマッチング分類
+ */
+const classifyByPattern = (tag: string): string | null => {
+  // Expression keywords - 表情 (check first for higher priority)
+  if (tag.includes('顔') || tag.includes('表情') || tag.includes('笑') || tag.includes('泣') ||
+      tag.includes('呼吸') || tag.includes('息切れ') || tag.includes('あえぎ') ||
+      tag.includes('食いしばった歯') || tag.includes('眉をひそめた') ||
+      tag.includes('ウィンク') || tag.includes('ウインク') ||
+      tag.includes('閉じた目') || tag.includes('見開') || tag.includes('半目') ||
+      tag.includes('開いた口') || tag.includes('口を')) {
+    return '表情';
+  }
+
+  // Hair keywords - 髪型・髪色
+  if (tag.includes('髪') || tag.includes('ヘア') || tag.includes('ツイン') ||
+      tag.includes('ポニーテール') || tag.includes('お団子')) {
+    return 'キャラクター';
+  }
+
+  // Eyes - 目・瞳 (after checking expression patterns)
+  if (tag.includes('目') || tag.includes('瞳')) {
+    // If not already classified as expression, it's character feature
+    if (!tag.includes('閉じた') && !tag.includes('見開') && !tag.includes('半目')) {
+      return 'キャラクター';
+    }
+    return '表情';
+  }
+
+  // Body type - キャラクター
+  if (tag.includes('バスト') || tag.includes('胸') || tag.includes('乳') || tag.includes('体型')) {
+    return 'キャラクター';
+  }
+
+  // Clothing - 服装
+  if (tag.includes('服') || tag.includes('衣装') || tag.includes('スカート') || tag.includes('パンティ') ||
+      tag.includes('ストッキング') || tag.includes('靴') || tag.includes('ベルト') ||
+      tag.includes('ガーター') || tag.includes('コスチューム') || tag.includes('コスプレ') ||
+      tag.includes('メイク') || tag.includes('ジュエリー') || tag.includes('イヤリング') ||
+      tag.includes('アクセサリー') || tag.includes('ヘアクリップ')) {
+    return '服装';
+  }
+
+  // Pose keywords - ポーズ
+  if (tag.includes('ポーズ') ||
+      tag.includes('立ちポーズ') || tag.includes('座') || tag.includes('寝') ||
+      tag.includes('腕を') || tag.includes('足を') || tag.includes('脚を') ||
+      tag.includes('拘束') || tag.includes('縛') || tag.includes('ボンデージ') ||
+      tag.includes('ロープ') || tag.includes('吊り下げ') || tag.includes('組む') ||
+      tag.includes('後ろで組む') || tag.includes('背中の後ろ')) {
+    return 'ポーズ';
+  }
+
+  // Composition/Background - 構図・アングル・背景
+  if (tag.includes('屋内') || tag.includes('屋外') || tag.includes('背景') || tag.includes('部屋') ||
+      tag.includes('ショット') || tag.includes('アングル') || tag.includes('視点') ||
+      tag.includes('被写界深度') || tag.includes('ぼやけた前景')) {
+    return '構図・アングル・背景';
+  }
+
+  // Effects - エフェクト
+  if (tag.includes('モーションブラー') || tag.includes('ブラー') || tag.includes('エフェクト') ||
+      tag.includes('輝') || tag.includes('光') || tag.includes('影') || tag.includes('動きの線') ||
+      tag.includes('吹き出し') || tag.includes('汗') || tag.includes('震え')) {
+    return 'エフェクト';
+  }
+
+  // Character basic - キャラクター
+  if (tag.includes('女') || tag.includes('男') || tag.includes('女の子') || tag.includes('少女') ||
+      tag.includes('ソロ') || tag.includes('一人') || tag.includes('フォーカス') ||
+      tag.includes('学生') || tag.includes('魔法少女') ||
+      tag.includes('若々しい') || tag.includes('かわいい') || tag.includes('美しい')) {
+    return 'キャラクター';
+  }
+
+  return null;
+};
+
+/**
+ * Classify English tags by pattern
+ */
+const classifyEnglishByPattern = (tag: string): string | null => {
+  const lower = tag.toLowerCase();
+
+  // Hair colors and styles
+  if (lower.includes('hair') || lower.includes('blonde') || lower.includes('brunette') ||
+      lower.includes('ponytail') || lower.includes('twintails')) {
+    return 'キャラクター';
+  }
+
+  // Expression
+  if (lower.includes('wink') || lower.includes('smile') || lower.includes('crying') ||
+      lower.includes('mouth') || lower.includes('eyes closed') || lower.includes('frown')) {
+    return '表情';
+  }
+
+  // Body features
+  if (lower.includes('breasts') || lower.includes('bust')) {
+    return 'キャラクター';
+  }
+
+  // Clothing
+  if (lower.includes('stocking') || lower.includes('skirt') || lower.includes('dress') ||
+      lower.includes('costume') || lower.includes('earring') || lower.includes('jewelry') ||
+      lower.includes('garter')) {
+    return '服装';
+  }
+
+  // Pose
+  if (lower.includes('pose') || lower.includes('standing') || lower.includes('sitting') ||
+      lower.includes('arms') || lower.includes('legs') || lower.includes('bondage') ||
+      lower.includes('restrained') || lower.includes('tied') || lower.includes('bound')) {
+    return 'ポーズ';
+  }
+
+  // Background/composition
+  if (lower.includes('indoor') || lower.includes('outdoor') || lower.includes('background') ||
+      lower.includes('depth of field') || lower.includes('shot')) {
+    return '構図・アングル・背景';
+  }
+
+  // Effects
+  if (lower.includes('blur') || lower.includes('motion') || lower.includes('glow') ||
+      lower.includes('sweat') || lower.includes('trembling')) {
+    return 'エフェクト';
+  }
+
+  // Character
+  if (lower.includes('girl') || lower.includes('boy') || lower.includes('solo') ||
+      lower.includes('focus') || lower.includes('student')) {
+    return 'キャラクター';
+  }
+
+  return null;
+};
+
+/**
  * Classify a tag into a category using keyword database
  * キーワードデータベースを使用してタグを分類
  */
@@ -210,6 +355,19 @@ const classifyTag = (tag: string, language: 'en' | 'ja'): string => {
   // Look up in keyword database
   const normalizedTag = language === 'en' ? tag.toLowerCase().trim() : tag.trim();
   const tagMap = language === 'en' ? EN_TAG_MAP : JA_TAG_MAP;
+
+  // Try pattern matching first (for both languages)
+  if (language === 'ja') {
+    const patternCategory = classifyByPattern(normalizedTag);
+    if (patternCategory) {
+      return patternCategory;
+    }
+  } else {
+    const patternCategory = classifyEnglishByPattern(normalizedTag);
+    if (patternCategory) {
+      return patternCategory;
+    }
+  }
 
   // 1. Exact match
   const category = tagMap.get(normalizedTag);
